@@ -1,0 +1,30 @@
+{
+  "name": "@nineh-fe-base/mf-vite",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "@module-federation/vite": "^1.24.1",
+    "@vitejs/plugin-vue": "^6.0.11"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.0",
+    "vue": "^3.5.0"
+  }
+}
