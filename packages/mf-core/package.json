@@ -1,0 +1,43 @@
+{
+  "name": "@nineh-fe-base/mf-core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "devDependencies": {
+    "@module-federation/runtime": "^2.9.3",
+    "@vitejs/plugin-vue": "^6.0.11",
+    "jsdom": "^31.0.1",
+    "pinia": "^4.1.0",
+    "vite-plugin-dts": "^5.1.2",
+    "vue-i18n": "^11.4.20",
+    "vue-router": "^5.5.1",
+    "vue-tsc": "^3.3.14"
+  },
+  "dependencies": {
+    "axios": "^1.21.1",
+    "mitt": "^3.0.1"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0",
+    "pinia": "^3.0.0 || ^4.0.0",
+    "vue-router": "^4.0.0 || ^5.0.0",
+    "vue-i18n": "^11.0.0",
+    "@module-federation/runtime": "^2.0.0"
+  }
+}
