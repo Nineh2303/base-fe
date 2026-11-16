@@ -302,6 +302,21 @@ describe('createRemoteLoader', () => {
     expect(router.resolve('/p2').matched.length).toBe(0)
   })
 
+  it('remote named like an existing host route → skipped with warn, status error, host route intact', async () => {
+    const { runtime, registered } = fakeRuntime({ ...remoteMods('home'), ...remoteMods('other') })
+    const router = makeRouter() // has host route named "home"
+    const loader = createRemoteLoader({ runtime, router, ctxRef: () => ctx, coreVersion: '1.3.0' })
+    await loader.loadAll([entry('home'), entry('other')])
+    expect(warnSpy.mock.calls.some((c) => /\[mf-core\].*"home".*host route/.test(String(c[0])))).toBe(true)
+    expect(registered.map((r) => r.name)).toEqual(['other'])
+    expect(loader.remotes.value.find((r) => r.name === 'home')).toMatchObject({ status: 'error' })
+    expect(loader.remotes.value.find((r) => r.name === 'home')!.error!.message).toMatch(/host route/)
+    expect(loader.remotes.value.find((r) => r.name === 'other')).toMatchObject({ status: 'ready' })
+    expect(router.resolve('/').name).toBe('home')
+    expect(router.resolve('/').matched[0]!.path).toBe('/')
+    expect(router.resolve('/home').matched.length).toBe(0)
+  })
+
   it('loads remotes in parallel', async () => {
     let resolveA!: (v: unknown) => void
     const loads: string[] = []

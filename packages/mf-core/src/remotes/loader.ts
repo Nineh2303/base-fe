@@ -204,8 +204,17 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
     try {
       // Conflict check runs first, in manifest order: the first claimant wins.
       const accepted: RemoteEntry[] = []
+      const rejected: LoadedRemote[] = []
       for (const e of entries) {
         const prefixKey = e.routePrefix.toLowerCase()
+        if (!names.has(e.name) && router.hasRoute(e.name)) {
+          // Would replace/remove the host route of the same name: never load it.
+          const message = `Remote "${e.name}" skipped: its name collides with an existing host route named "${e.name}"`
+          console.warn(`${PREFIX} ${message}`)
+          names.add(e.name)
+          rejected.push({ ...e, status: 'error', error: new Error(message) })
+          continue
+        }
         if (names.has(e.name)) {
           console.warn(`${PREFIX} Duplicate remote name "${e.name}" (${e.entry}) skipped`)
           continue
@@ -218,7 +227,11 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
         prefixes.add(prefixKey)
         accepted.push(e)
       }
-      remotes.value = [...remotes.value, ...accepted.map((e): LoadedRemote => ({ ...e, status: 'loading' }))]
+      remotes.value = [
+        ...remotes.value,
+        ...rejected,
+        ...accepted.map((e): LoadedRemote => ({ ...e, status: 'loading' })),
+      ]
 
       await Promise.allSettled(
         accepted.map(async (e) => {
