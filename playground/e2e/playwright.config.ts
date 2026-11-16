@@ -4,8 +4,17 @@ import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('../..', import.meta.url))
 const reuse = !process.env.CI
 
-// One `npm run preview` (builds, then serves all three apps); the other two ports
-// are listed as extra url checks so tests only start once every app is ready.
+// One webServer entry per app so Playwright itself waits for every port before the first test.
+// Entries start in order: the first also builds the framework packages the apps depend on.
+const server = (app: string, port: number, path = '/mf-manifest.json', prefix = '') => ({
+  command: `${prefix}npm run preview -w ${app}`,
+  cwd: root,
+  url: `http://localhost:${port}${path}`,
+  reuseExistingServer: reuse,
+  timeout: 180_000,
+  stdout: 'pipe' as const,
+})
+
 export default defineConfig({
   testDir: './tests',
   workers: 1,
@@ -13,12 +22,9 @@ export default defineConfig({
   reporter: [['list']],
   use: { baseURL: 'http://localhost:5000', trace: 'retain-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: 'npm run preview',
-    cwd: root,
-    url: 'http://localhost:5000',
-    reuseExistingServer: reuse,
-    timeout: 180_000,
-    stdout: 'pipe',
-  },
+  webServer: [
+    server('products-service', 5002, undefined, 'npm run build:framework && '),
+    server('auth-service', 5001),
+    server('shell', 5000, '/'),
+  ],
 })

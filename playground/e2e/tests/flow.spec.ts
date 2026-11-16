@@ -6,16 +6,6 @@ async function login(page: Page, password = 'admin') {
   await page.locator('[data-test=submit]').click()
 }
 
-test.beforeAll(async ({ request }) => {
-  // webServer only waits for :5000; make sure the remotes are up too.
-  await expect
-    .poll(async () => (await request.get('http://localhost:5001/mf-manifest.json')).ok(), { timeout: 60_000 })
-    .toBe(true)
-  await expect
-    .poll(async () => (await request.get('http://localhost:5002/mf-manifest.json')).ok(), { timeout: 60_000 })
-    .toBe(true)
-})
-
 test('unauthenticated /products redirects to /auth/login?redirect=/products', async ({ page }) => {
   await page.goto('/products')
   await expect.poll(() => new URL(page.url()).pathname).toBe('/auth/login')
