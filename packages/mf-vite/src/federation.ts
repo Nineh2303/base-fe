@@ -43,7 +43,9 @@ export function buildFederationOptions(
     )
   }
   const shared = buildShared(ctx.versions, opts.shared, ctx.coreVersion)
-  const base = { name: opts.name, shared, manifest: true }
+  // dts: remotes are loaded at runtime from remotes.json (no static `import 'remote/x'`), so
+  // federated type generation has nothing to do; it also crashes dev without a tsconfig.json.
+  const base = { name: opts.name, shared, manifest: true, dts: false }
 
   if (kind === 'host') {
     return { ...base, remotes: {}, exposes: {} }

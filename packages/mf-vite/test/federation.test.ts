@@ -23,6 +23,11 @@ describe('buildFederationOptions', () => {
     expect(o.manifest).toBe(true)
   })
 
+  test('dts bị tắt cho cả host và remote (remote nạp lúc runtime)', () => {
+    expect((buildFederationOptions('host', { name: 'shell' }, ctx) as any).dts).toBe(false)
+    expect((buildFederationOptions('remote', { name: 'products', exposes: {} }, ctx) as any).dts).toBe(false)
+  })
+
   test.each(['*', 'workspace:*', 'link:../core', 'file:../core'])(
     'mf-core spec %s → ^coreVersion',
     (spec) => {
