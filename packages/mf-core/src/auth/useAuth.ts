@@ -7,6 +7,8 @@ export interface AuthApi {
   user: Ref<AuthUser | null>
   status: Ref<AuthStatus>
   isAuthenticated: ComputedRef<boolean>
+  /** Current user's permissions (`[]` when anonymous). */
+  permissions: ComputedRef<string[]>
   login(credentials: Record<string, unknown>): Promise<AuthUser>
   logout(): Promise<void>
   refresh(): Promise<boolean>
@@ -16,11 +18,12 @@ export interface AuthApi {
 
 export function useAuth(): AuthApi {
   const store = useAuthStore()
-  const { user, status, isAuthenticated } = storeToRefs(store)
+  const { user, status, isAuthenticated, permissions } = storeToRefs(store)
   return {
     user: user as Ref<AuthUser | null>,
     status,
     isAuthenticated,
+    permissions,
     login: store.login,
     logout: store.logout,
     refresh: store.refresh,

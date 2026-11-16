@@ -39,7 +39,8 @@ export const useAuthStore = defineStore('mf-core/auth', () => {
     initPromise = (async () => {
       try {
         if (!adapter.withCredentials && !adapter.getAccessToken()) {
-          const ok = await adapter.refresh()
+          // Single-flight with concurrent store.refresh() calls (a second refresh with the same RT would lose rotation).
+          const ok = await refresh()
           if (!ok) return setAnonymous()
         }
         const u = await adapter.fetchUser()

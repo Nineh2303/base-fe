@@ -101,6 +101,42 @@ describe('auth store', () => {
     expect(adapter.refresh).toHaveBeenCalledTimes(1)
   })
 
+  it('init in flight + concurrent store.refresh() -> adapter.refresh exactly once, ends authenticated', async () => {
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    let token: string | null = null
+    const base = createMockAuthAdapter({ user, autoLogin: true })
+    const adapter: AuthAdapter = {
+      ...base,
+      getAccessToken: () => token,
+      refresh: vi.fn(async () => {
+        await gate
+        token = 'AT'
+        return true
+      }),
+      fetchUser: vi.fn(async () => user),
+    }
+    configureAuth(adapter, createBus())
+    const s = useAuthStore()
+    const init = s.init()
+    const concurrent = s.refresh() // e.g. a remote ./setup request got 401 during init
+    release()
+    expect(await concurrent).toBe(true)
+    await init
+    expect(adapter.refresh).toHaveBeenCalledTimes(1)
+    expect(s.status).toBe('authenticated')
+  })
+
+  it('useAuth exposes permissions from the store', async () => {
+    configureAuth(createMockAuthAdapter({ user }), createBus())
+    const { permissions, login, logout } = useAuth()
+    expect(permissions.value).toEqual([])
+    await login({})
+    expect(permissions.value).toEqual(['a', 'b'])
+    await logout()
+    expect(permissions.value).toEqual([])
+  })
+
   it('useAuth exposes refs and bound actions', async () => {
     configureAuth(createMockAuthAdapter({ user }), createBus())
     const { user: u, isAuthenticated, login, hasPermission } = useAuth()
