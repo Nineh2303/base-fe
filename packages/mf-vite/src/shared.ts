@@ -15,7 +15,12 @@ export const DEFAULT_SHARED_NAMES = [
 
 /** Version specs that are not real semver ranges (monorepo links). */
 function isLocalSpec(spec: string): boolean {
-  return spec === '*' || spec.startsWith('workspace:') || spec.startsWith('link:') || spec.startsWith('file:')
+  return (
+    spec === '*' ||
+    spec.startsWith('workspace:') ||
+    spec.startsWith('link:') ||
+    spec.startsWith('file:')
+  )
 }
 
 /**
@@ -30,7 +35,11 @@ export function buildShared(
   const shared: SharedConfig = {}
   for (const name of DEFAULT_SHARED_NAMES) {
     let requiredVersion = versions[name]
-    if (name === CORE_PACKAGE && coreVersion && (!requiredVersion || isLocalSpec(requiredVersion))) {
+    if (
+      name === CORE_PACKAGE &&
+      coreVersion &&
+      (!requiredVersion || isLocalSpec(requiredVersion))
+    ) {
       requiredVersion = `^${coreVersion}`
     }
     shared[name] = requiredVersion ? { singleton: true, requiredVersion } : { singleton: true }
