@@ -85,3 +85,15 @@ describe('host names', () => {
     ).rejects.toThrow(/Invalid host name/)
   })
 })
+
+describe('generated host usability', () => {
+  it('host provides the /auth/login route the auth guard redirects to; remote sample route is public', async () => {
+    const host = join(base, 'shell')
+    await generate({ kind: 'host', name: 'shell', targetDir: host, frameworkVersion: '1.2.3' })
+    expect(read(host, 'src/bootstrap.ts')).toContain("path: '/auth/login'")
+    expect(existsSync(join(host, 'src/pages/Login.vue'))).toBe(true)
+    const remote = join(base, 'orders')
+    await generate({ kind: 'remote', name: 'orders', targetDir: remote, frameworkVersion: '1.2.3' })
+    expect(read(remote, 'src/routes.ts')).toContain('requiresAuth: false')
+  })
+})

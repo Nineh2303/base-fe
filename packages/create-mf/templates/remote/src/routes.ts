@@ -6,7 +6,8 @@ const routes: RouteRecordRaw[] = [
     path: '',
     name: 'sample',
     component: SamplePage,
-    meta: { requiresAuth: true },
+    // Public so the sample renders in any host. Set `requiresAuth: true` for protected pages.
+    meta: { requiresAuth: false },
   },
 ]
 

@@ -42,6 +42,7 @@ async function onLogout() {
           <span>{{ user?.name }}</span>
           <button type="button" @click="onLogout">Log out</button>
         </template>
+        <RouterLink v-else to="/auth/login">Log in</RouterLink>
       </div>
     </header>
     <main class="shell-main">

@@ -2,10 +2,13 @@ import { createMfApp, jwtAdapter } from '@nineh-fe-base/mf-core'
 import Layout from './Layout.vue'
 import Home from './pages/Home.vue'
 import Forbidden from './pages/Forbidden.vue'
+import Login from './pages/Login.vue'
 import NotFound from './pages/NotFound.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
+  // Target of the auth guard redirect (loginPath default). Posts credentials to `${baseURL}/auth/login`.
+  { path: '/auth/login', name: 'login', component: Login },
   { path: '/403', name: 'forbidden', component: Forbidden },
   { path: '/404', name: 'not-found', component: NotFound },
 ]
