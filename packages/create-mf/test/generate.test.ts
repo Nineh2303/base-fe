@@ -96,6 +96,15 @@ describe('generated host usability', () => {
     await generate({ kind: 'remote', name: 'orders', targetDir: remote, frameworkVersion: '1.2.3' })
     expect(read(remote, 'src/routes.ts')).toContain('requiresAuth: false')
   })
+
+  it('remote bootstrap + README warn that standalone has no /auth/login (jwtAdapter needs a login route)', async () => {
+    const remote = join(base, 'orders2')
+    await generate({ kind: 'remote', name: 'orders2', targetDir: remote, frameworkVersion: '1.2.3' })
+    for (const f of ['src/bootstrap.ts', 'README.md']) {
+      expect(read(remote, f), f).toContain('/auth/login')
+      expect(read(remote, f), f).toContain('jwtAdapter')
+    }
+  })
 })
 
 describe('package names and placeholders', () => {

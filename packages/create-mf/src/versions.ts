@@ -1,6 +1,6 @@
 /**
  * Third-party dependency versions written into generated projects.
- * Single source of truth: templates reference them as `{{<key>}}` placeholders.
+ * Single source of truth: templates reference them as `%%key%%` placeholders.
  * Keep in sync with the playground.
  */
 export const VERSIONS = {
