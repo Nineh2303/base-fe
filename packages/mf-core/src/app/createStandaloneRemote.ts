@@ -22,7 +22,7 @@ export interface StandaloneRemoteOptions
   setup?: RemoteSetup
   /** Default `createMockAuthAdapter({ autoLogin: true })`. */
   auth?: AuthAdapter
-  api: { baseURL: string }
+  api: MfAppOptions['api']
 }
 
 const DefaultRoot = defineComponent({

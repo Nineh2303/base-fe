@@ -149,6 +149,30 @@ describe('createMfApp', () => {
     expect(handle.ctx.http.defaults.baseURL).toBe('http://api')
   })
 
+  it('ctx.http: token only for api origin + api.trustedOrigins, never a foreign origin', async () => {
+    const handle = track(
+      await createMfApp({
+        root: Root,
+        routes: [{ path: '/', component: Page('home') }],
+        auth: createMockAuthAdapter({ autoLogin: true }),
+        api: { baseURL: 'http://api', trustedOrigins: ['http://files'] },
+        history: historyAt('/'),
+      }),
+    )
+    await handle.mount(el())
+    expect(handle.ctx.auth.isAuthenticated.value).toBe(true)
+    const mock = new MockAdapter(handle.ctx.http)
+    mock.onAny().reply(200, [])
+    await handle.ctx.http.get('/items')
+    await handle.ctx.http.get('http://files/x')
+    await handle.ctx.http.get('http://third-party/x')
+    expect(mock.history.get.map((c) => c.headers?.Authorization ?? null)).toEqual([
+      'Bearer mock-token',
+      'Bearer mock-token',
+      null,
+    ])
+  })
+
   it('cookie adapter: ctx.http requests are sent withCredentials', async () => {
     const handle = track(
       await createMfApp({

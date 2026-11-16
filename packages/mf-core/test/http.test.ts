@@ -3,7 +3,7 @@ import MockAdapter from 'axios-mock-adapter'
 import { createHttpClient } from '../src/http/createHttpClient'
 import type { HttpAuthHooks } from '../src/http/createHttpClient'
 
-function setup(over: Partial<HttpAuthHooks> = {}) {
+function setup(over: Partial<HttpAuthHooks> = {}, trustedOrigins?: string[]) {
   let token: string | null = 'old'
   const auth: HttpAuthHooks = {
     getAccessToken: () => token,
@@ -14,7 +14,7 @@ function setup(over: Partial<HttpAuthHooks> = {}) {
     onAuthFailure: vi.fn(),
     ...over,
   }
-  const http = createHttpClient({ baseURL: 'http://x', auth })
+  const http = createHttpClient({ baseURL: 'http://x', auth, trustedOrigins })
   const mock = new MockAdapter(http)
   return { http, mock, auth, setToken: (t: string | null) => (token = t) }
 }
@@ -173,4 +173,51 @@ describe('createHttpClient concurrency edges', () => {
       expect(onAuthFailure).toHaveBeenCalledTimes(2)
     })
   }
+})
+
+describe('createHttpClient token scoping (origin)', () => {
+  const echo = (c: { headers?: Record<string, unknown> }) => [200, c.headers?.Authorization ?? null] as [number, unknown]
+
+  it('relative and same-origin absolute URLs get the token', async () => {
+    const { http, mock } = setup()
+    mock.onAny().reply(echo)
+    expect((await http.get('/a')).data).toBe('Bearer old')
+    expect((await http.get('a')).data).toBe('Bearer old')
+    expect((await http.get('http://x/other')).data).toBe('Bearer old')
+  })
+
+  it('cross-origin absolute (and protocol-relative) URLs get no token', async () => {
+    const { http, mock } = setup()
+    mock.onAny().reply(echo)
+    expect((await http.get('https://evil.example/a')).data).toBeNull()
+    expect((await http.get('//evil.example/a')).data).toBeNull()
+    expect((await http.get('/a', { baseURL: 'https://other.example' })).data).toBeNull()
+  })
+
+  it('401 from a cross-origin URL does not refresh nor call onAuthFailure', async () => {
+    const { http, mock, auth } = setup()
+    mock.onAny().reply(401)
+    await expect(http.get('https://evil.example/a')).rejects.toMatchObject({ response: { status: 401 } })
+    expect(auth.refresh).not.toHaveBeenCalled()
+    expect(auth.onAuthFailure).not.toHaveBeenCalled()
+  })
+
+  it('trustedOrigins are honoured for token and 401 refresh', async () => {
+    const { http, mock, auth } = setup({}, ['https://api.example/'])
+    mock.onAny().reply((c) => (c.headers?.Authorization === 'Bearer new' ? [200, 'ok'] : [401]))
+    expect((await http.get('https://api.example/a')).data).toBe('ok')
+    expect(auth.refresh).toHaveBeenCalledTimes(1)
+    mock.reset()
+    mock.onAny().reply(echo)
+    expect((await http.get('https://api.example.evil/a')).data).toBeNull()
+  })
+
+  it('without baseURL, relative URLs (page origin) get the token', async () => {
+    const http = createHttpClient({ auth: { getAccessToken: () => 't', refresh: async () => true, onAuthFailure: () => {} } })
+    const mock = new MockAdapter(http)
+    mock.onAny().reply(echo)
+    expect((await http.get('/a')).data).toBe('Bearer t')
+    expect((await http.get(`${location.origin}/a`)).data).toBe('Bearer t')
+    expect((await http.get('https://evil.example/a')).data).toBeNull()
+  })
 })

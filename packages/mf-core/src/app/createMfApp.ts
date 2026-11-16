@@ -26,7 +26,11 @@ export interface MfAppOptions {
   /** Remote manifest; omitted → no remotes. */
   remotes?: ManifestSource
   auth: AuthAdapter
-  api: { baseURL: string }
+  /**
+   * `ctx.http` config. The Bearer token (and 401 refresh) is only sent to relative URLs, the `baseURL`
+   * origin and `trustedOrigins`.
+   */
+  api: { baseURL: string; trustedOrigins?: string[] }
   /** Default `/auth/login`. */
   loginPath?: string
   /** Default `/403`. */
@@ -88,6 +92,7 @@ export async function createMfApp(opts: MfAppOptions): Promise<MfAppHandle> {
 
   const http = createHttpClient({
     baseURL: opts.api.baseURL,
+    trustedOrigins: opts.api.trustedOrigins,
     withCredentials: adapter.withCredentials,
     auth: {
       getAccessToken: () => adapter.getAccessToken(),

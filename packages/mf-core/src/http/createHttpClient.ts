@@ -18,10 +18,53 @@ export interface HttpAuthHooks {
   onAuthFailure(): void | Promise<void>
 }
 
-export function createHttpClient(
-  config: Omit<AxiosRequestConfig, 'auth'> & { auth?: HttpAuthHooks; withCredentials?: boolean } = {},
-): AxiosInstance {
-  const { auth, ...axiosConfig } = config
+function pageOrigin(): string | undefined {
+  const o = typeof location !== 'undefined' ? location.origin : undefined
+  return o && o !== 'null' ? o : undefined
+}
+
+function parseUrl(url: string, base?: string): URL | undefined {
+  try {
+    return new URL(url, base)
+  } catch {
+    return undefined
+  }
+}
+
+const ABSOLUTE_URL = /^([a-z][a-z\d+\-.]*:)?\/\//i
+
+export interface HttpClientOptions extends Omit<AxiosRequestConfig, 'auth'> {
+  auth?: HttpAuthHooks
+  withCredentials?: boolean
+  /**
+   * Extra origins (e.g. `https://api.example.com`) that receive the Bearer token and 401/refresh handling.
+   * Relative URLs and URLs on the same origin as `baseURL` (or the page, without `baseURL`) are always trusted.
+   */
+  trustedOrigins?: string[]
+}
+
+export function createHttpClient(config: HttpClientOptions = {}): AxiosInstance {
+  const { auth, trustedOrigins = [], ...axiosConfig } = config
+  const extraOrigins = new Set(
+    trustedOrigins.map((o) => parseUrl(o)?.origin).filter((o): o is string => !!o),
+  )
+
+  /** The token (and refresh handling) only goes to relative / same-origin-as-baseURL / trusted URLs. */
+  // Trusted origin = the instance's configured baseURL (a per-request baseURL override is not trusted by itself).
+  const isTrusted = (req: AxiosRequestConfig): boolean => {
+    const page = pageOrigin()
+    const resolveBase = (b?: string) => (b ? parseUrl(b, page)?.href : page)
+    const homeBase = resolveBase(http.defaults.baseURL)
+    const reqBase = resolveBase(req.baseURL)
+    const url = req.url ?? ''
+    let target: URL | undefined
+    if (reqBase) target = parseUrl(url, reqBase)
+    else if (ABSOLUTE_URL.test(url)) target = parseUrl(url)
+    else return true // plain relative path with no resolvable base (non-browser): same origin by definition
+    if (!target) return false
+    if (extraOrigins.has(target.origin)) return true
+    return !!homeBase && target.origin === new URL(homeBase).origin
+  }
   const http = axios.create(axiosConfig)
   if (config.withCredentials !== undefined) http.defaults.withCredentials = config.withCredentials
 
@@ -47,7 +90,7 @@ export function createHttpClient(
   }
 
   http.interceptors.request.use((req) => {
-    if (auth && !req.skipAuth) {
+    if (auth && !req.skipAuth && isTrusted(req)) {
       const token = auth.getAccessToken()
       if (token) req.headers.set('Authorization', `Bearer ${token}`)
     }
@@ -56,7 +99,7 @@ export function createHttpClient(
 
   http.interceptors.response.use(undefined, async (error) => {
     const original = error?.config as InternalAxiosRequestConfig | undefined
-    if (!auth || !original || error.response?.status !== 401 || original.skipAuth || original._retried) {
+    if (!auth || !original || error.response?.status !== 401 || original.skipAuth || original._retried || !isTrusted(original)) {
       throw error
     }
     // Token already rotated since this request was sent (late 401 from a stale token): just replay.

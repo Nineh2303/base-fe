@@ -10,6 +10,16 @@ Export chính:
 - `createHttpClient`, `createBus`, `createTheme`/`useTheme` (CSS variables `--mf-*`), `createMfI18n`/`registerMessages`, `useMfContext`, `RemoteBoundary`, `RemoteErrorPage`.
 - Kiểu: `RemoteSetup`, `MfContext`, `RemoteEntry`, `AuthUser`...
 
+### HTTP client và token
+
+`createHttpClient({ baseURL, auth, withCredentials, trustedOrigins })` (và `ctx.http` qua `createMfApp({ api: { baseURL, trustedOrigins } })`) chỉ gắn `Authorization: Bearer …` và xử lý 401/refresh cho:
+
+- URL tương đối (đi tới `baseURL`, hoặc origin của trang khi không có `baseURL`);
+- URL tuyệt đối cùng origin với `baseURL` của instance;
+- origin nằm trong `trustedOrigins` (ví dụ `['https://files.example.com']`).
+
+Mọi origin khác (kể cả `//host/...` hay `baseURL` ghi đè theo request) không nhận token, và 401 từ đó không kích hoạt refresh/logout.
+
 `peerDependencies`: `vue`, `pinia`, `vue-router`, `vue-i18n`, `@module-federation/runtime`.
 
 Chính sách version: tương thích ngược trong một major; khi còn `0.x`, tăng minor là breaking (host 0.1.x từ chối remote build với 0.2.x). Xem README gốc.
