@@ -75,8 +75,8 @@ function isMissingExpose(err: unknown, remote: string, expose: string): boolean 
   return msg.includes(`./${expose}`) || msg.includes(`${remote}/${expose}`)
 }
 
-/** Prefixes route names with `<remote>/`; top-level paths become relative to the remote prefix. */
-function scopeRoute(route: RouteRecordRaw, remote: string, top: boolean): RouteRecordRaw {
+/** Prefixes route names with `<remote>/`; top-level paths become relative to the remote prefix. Internal (also used by createStandaloneRemote). */
+export function scopeRoute(route: RouteRecordRaw, remote: string, top: boolean): RouteRecordRaw {
   const out = { ...route } as RouteRecordRaw & { name?: unknown; redirect?: unknown; children?: RouteRecordRaw[] }
   const scoped = (n: string) => (n.startsWith(`${remote}/`) ? n : `${remote}/${n}`)
   if (top && typeof out.path === 'string') out.path = out.path.replace(/^\/+/, '')
@@ -89,7 +89,7 @@ function scopeRoute(route: RouteRecordRaw, remote: string, top: boolean): RouteR
   return out
 }
 
-function remoteHost(name: string): Component {
+export function remoteHost(name: string): Component {
   return defineComponent({
     name: 'MfRemoteHost',
     setup() {
