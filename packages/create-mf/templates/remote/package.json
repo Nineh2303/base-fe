@@ -1,0 +1,26 @@
+{
+  "name": "{{name}}",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite build && vite preview",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@module-federation/runtime": "{{moduleFederationRuntimeVersion}}",
+    "@nineh-fe-base/mf-core": "^{{frameworkVersion}}",
+    "pinia": "{{piniaVersion}}",
+    "vue": "{{vueVersion}}",
+    "vue-i18n": "{{vueI18nVersion}}",
+    "vue-router": "{{vueRouterVersion}}"
+  },
+  "devDependencies": {
+    "@nineh-fe-base/mf-vite": "^{{frameworkVersion}}",
+    "typescript": "{{typescriptVersion}}",
+    "vite": "{{viteVersion}}",
+    "vue-tsc": "{{vueTscVersion}}"
+  }
+}

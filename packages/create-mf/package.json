@@ -1,0 +1,22 @@
+{
+  "name": "@nineh-fe-base/create-mf",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Scaffold host and remote projects for the nineh Vue micro-frontend framework",
+  "bin": {
+    "create-mf": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsup"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.9.0"
+  }
+}

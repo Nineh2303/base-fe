@@ -1,0 +1,22 @@
+import { createMfApp, jwtAdapter } from '@nineh-fe-base/mf-core'
+import Layout from './Layout.vue'
+import Home from './pages/Home.vue'
+import Forbidden from './pages/Forbidden.vue'
+import NotFound from './pages/NotFound.vue'
+
+const routes = [
+  { path: '/', name: 'home', component: Home },
+  { path: '/403', name: 'forbidden', component: Forbidden },
+  { path: '/404', name: 'not-found', component: NotFound },
+]
+
+const { mount } = await createMfApp({
+  root: Layout,
+  routes,
+  // Remotes are listed in public/remotes.json; add entries there to plug in micro-frontends.
+  remotes: '/remotes.json',
+  auth: jwtAdapter({ baseURL: '/api' }),
+  api: { baseURL: '/api' },
+})
+
+await mount('#app')
