@@ -1,10 +1,10 @@
-# {{name}}
+# %%name%%
 
 Host (shell) application built on `@nineh-fe-base/mf-core` and `@nineh-fe-base/mf-vite`.
 
 ```bash
 npm install
-npm run dev        # http://localhost:{{port}}
+npm run dev        # http://localhost:%%port%%
 npm run typecheck
 npm run build
 ```

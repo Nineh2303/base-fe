@@ -28,7 +28,7 @@ async function onLogout() {
 <template>
   <div class="shell">
     <header v-if="showLayout" class="shell-header">
-      <RouterLink to="/" class="shell-brand">{{name}}</RouterLink>
+      <RouterLink to="/" class="shell-brand">%%name%%</RouterLink>
       <nav class="shell-nav">
         <RouterLink v-for="r in menu" :key="r.name" :to="r.routePrefix">
           {{ r.menu!.label }}

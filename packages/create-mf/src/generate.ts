@@ -46,17 +46,32 @@ export function validatePort(port: number): string | undefined {
   return Number.isInteger(port) && port >= 1 && port <= 65535 ? undefined : `Invalid port "${port}": must be 1-65535`
 }
 
-function render(text: string, values: Record<string, string>): string {
-  return text.replace(/\{\{(\w+)\}\}/g, (match, key: string) => values[key] ?? match)
+/** Derive an npm-safe package name: `myOrders` -> `my-orders`, `my$remote` -> `my-remote`. */
+export function toPackageName(name: string): string {
+  const out = name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .toLowerCase()
+    .replace(/[^a-z0-9._~-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[-._~]+|[-._~]+$/g, '')
+  return out || 'app'
 }
 
-function copyDir(src: string, dest: string, values: Record<string, string>): void {
+/** Replace `%%key%%` placeholders; unknown keys are left untouched. Binary content is returned unchanged. */
+export function render(content: Buffer, values: Record<string, string>): Buffer {
+  if (content.includes(0)) return content
+  return Buffer.from(
+    content.toString('utf8').replace(/%%(\w+)%%/g, (match, key: string) => values[key] ?? match),
+  )
+}
+
+export function copyDir(src: string, dest: string, values: Record<string, string>): void {
   mkdirSync(dest, { recursive: true })
   for (const entry of readdirSync(src)) {
     const from = join(src, entry)
     const to = join(dest, RENAMES[entry] ?? entry)
     if (statSync(from).isDirectory()) copyDir(from, to, values)
-    else writeFileSync(to, render(readFileSync(from, 'utf8'), values))
+    else writeFileSync(to, render(readFileSync(from), values))
   }
 }
 
@@ -75,6 +90,7 @@ export async function generate(opts: GenerateOptions): Promise<void> {
   copyDir(join(PACKAGE_ROOT, 'templates', kind), targetDir, {
     ...VERSIONS,
     name,
+    packageName: toPackageName(name),
     port: String(port),
     frameworkVersion,
   })

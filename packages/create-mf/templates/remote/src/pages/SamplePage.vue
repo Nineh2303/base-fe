@@ -10,7 +10,7 @@ const { user } = useAuth()
 
 <template>
   <section>
-    <h1>{{name}}</h1>
+    <h1>%%name%%</h1>
     <p>{{ user ? `Signed in as ${user.name}.` : 'Not signed in.' }}</p>
     <button type="button" @click="store.increment()">Clicked {{ count }} times</button>
   </section>

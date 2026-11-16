@@ -1,8 +1,8 @@
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync, readdirSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { generate } from '../src/generate'
+import { copyDir, generate, toPackageName } from '../src/generate'
 
 let base: string
 beforeEach(() => {
@@ -34,7 +34,7 @@ describe('generate', () => {
     expect(JSON.stringify(pkg)).not.toContain('msw')
     // no unreplaced placeholders anywhere
     for (const f of ['package.json', 'index.html', 'vite.config.ts', 'src/bootstrap.ts', 'README.md']) {
-      expect(read(targetDir, f)).not.toMatch(/\{\{\w+\}\}/)
+      expect(read(targetDir, f)).not.toMatch(/%%\w+%%/)
     }
   })
 
@@ -95,5 +95,49 @@ describe('generated host usability', () => {
     const remote = join(base, 'orders')
     await generate({ kind: 'remote', name: 'orders', targetDir: remote, frameworkVersion: '1.2.3' })
     expect(read(remote, 'src/routes.ts')).toContain('requiresAuth: false')
+  })
+})
+
+describe('package names and placeholders', () => {
+  it('derives an npm-safe package name but keeps the federation name as given', async () => {
+    const dir = join(base, 'myOrders')
+    await generate({ kind: 'remote', name: 'myOrders', targetDir: dir, frameworkVersion: '1.0.0' })
+    expect(JSON.parse(read(dir, 'package.json')).name).toBe('my-orders')
+    expect(read(dir, 'vite.config.ts')).toContain("defineRemote({\n  name: 'myOrders'")
+    expect(read(dir, 'src/stores/sample.ts')).toContain("defineStore('myOrders/sample'")
+  })
+
+  it('toPackageName handles odd identifiers', () => {
+    expect(toPackageName('my$remote')).toBe('my-remote')
+    expect(toPackageName('Orders')).toBe('orders')
+    expect(toPackageName('orders')).toBe('orders')
+    expect(toPackageName('_priv')).toBe('priv')
+    expect(toPackageName('$')).toBe('app')
+  })
+
+  it('leaves Vue mustaches intact and leaves no %% placeholder behind', async () => {
+    const remote = join(base, 'orders')
+    const host = join(base, 'shell')
+    await generate({ kind: 'remote', name: 'orders', targetDir: remote, frameworkVersion: '1.0.0' })
+    await generate({ kind: 'host', name: 'shell', targetDir: host, frameworkVersion: '1.0.0' })
+    expect(read(remote, 'src/pages/SamplePage.vue')).toContain('{{ user ? ')
+    expect(read(remote, 'src/pages/SamplePage.vue')).toContain('{{ count }}')
+    const walk = (d: string): string[] =>
+      readdirSync(d).flatMap((e) => (statSync(join(d, e)).isDirectory() ? walk(join(d, e)) : [join(d, e)]))
+    for (const f of [...walk(remote), ...walk(host)]) {
+      expect(readFileSync(f, 'utf8'), f).not.toMatch(/%%\w+%%/)
+    }
+  })
+
+  it('does not touch mustaches without spaces or binary files', () => {
+    const src = join(base, 'tpl')
+    mkdirSync(src)
+    const bin = Buffer.from([0, 1, 2, 0x25, 0x25, 0x6e, 0x61, 0x6d, 0x65, 0x25, 0x25, 0, 255])
+    writeFileSync(join(src, 'a.vue'), '{{count}} %%name%%')
+    writeFileSync(join(src, 'b.bin'), bin)
+    const dest = join(base, 'out')
+    copyDir(src, dest, { name: 'x' })
+    expect(read(dest, 'a.vue')).toBe('{{count}} x')
+    expect(readFileSync(join(dest, 'b.bin')).equals(bin)).toBe(true)
   })
 })

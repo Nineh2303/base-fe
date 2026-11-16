@@ -1,5 +1,5 @@
 {
-  "name": "{{name}}",
+  "name": "%%packageName%%",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,17 +10,17 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@module-federation/runtime": "{{moduleFederationRuntimeVersion}}",
-    "@nineh-fe-base/mf-core": "^{{frameworkVersion}}",
-    "pinia": "{{piniaVersion}}",
-    "vue": "{{vueVersion}}",
-    "vue-i18n": "{{vueI18nVersion}}",
-    "vue-router": "{{vueRouterVersion}}"
+    "@module-federation/runtime": "%%moduleFederationRuntimeVersion%%",
+    "@nineh-fe-base/mf-core": "^%%frameworkVersion%%",
+    "pinia": "%%piniaVersion%%",
+    "vue": "%%vueVersion%%",
+    "vue-i18n": "%%vueI18nVersion%%",
+    "vue-router": "%%vueRouterVersion%%"
   },
   "devDependencies": {
-    "@nineh-fe-base/mf-vite": "^{{frameworkVersion}}",
-    "typescript": "{{typescriptVersion}}",
-    "vite": "{{viteVersion}}",
-    "vue-tsc": "{{vueTscVersion}}"
+    "@nineh-fe-base/mf-vite": "^%%frameworkVersion%%",
+    "typescript": "%%typescriptVersion%%",
+    "vite": "%%viteVersion%%",
+    "vue-tsc": "%%vueTscVersion%%"
   }
 }
