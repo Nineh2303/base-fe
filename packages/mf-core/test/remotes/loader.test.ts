@@ -409,6 +409,7 @@ describe('defineRemoteComponent', () => {
     const box = el.querySelector('.mf-remote-error')
     expect(box).not.toBeNull()
     expect(box!.textContent).toContain('widget gone')
+    expect(box!.querySelector('strong')!.textContent).toBe('Không tải được products/Widget')
 
     mods['products/Widget'] = Widget
     ;(el.querySelector('[data-test="mf-retry"]') as HTMLButtonElement).click()

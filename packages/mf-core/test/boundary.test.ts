@@ -304,3 +304,58 @@ describe('RemoteBoundary edge cases', () => {
     expect(el.querySelector('.good')).not.toBeNull()
   })
 })
+
+describe('RemoteBoundary / RemoteErrorPage labels', () => {
+  const title = (el: Element) => el.querySelector('.mf-remote-error strong, [data-test="mf-critical-error"] h1')?.textContent?.trim()
+  const retry = (el: Element) => el.querySelector('[data-test="mf-retry"]')?.textContent?.trim()
+
+  it('load error (error prop) default title "Không tải được <name>", retry "Thử lại"', () => {
+    const el = mountComp(RemoteBoundary, { name: 'x', error: new Error('e') })
+    expect(title(el)).toBe('Không tải được x')
+    expect(retry(el)).toBe('Thử lại')
+  })
+
+  it('timeout default title is a load title', async () => {
+    vi.useFakeTimers()
+    const never = defineComponent({
+      async setup() {
+        await new Promise(() => {})
+        return () => h('i')
+      },
+    })
+    const el = mountComp(RemoteBoundary, { name: 'slow', timeout: 100 }, () => h(never))
+    await flush()
+    vi.advanceTimersByTime(200)
+    await flush()
+    expect(title(el)).toBe('Không tải được slow')
+  })
+
+  it('captured runtime error default title "<name> gặp lỗi"', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const f = flaky()
+    const el = mountComp(RemoteBoundary, { name: 'orders' }, () => h(f.comp), () => {})
+    await flush()
+    expect(title(el)).toBe('orders gặp lỗi')
+  })
+
+  it('custom title / retryLabel on both components', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const el = mountComp(RemoteBoundary, { name: 'x', error: new Error('e'), title: 'Oops', retryLabel: 'Retry' })
+    expect(title(el)).toBe('Oops')
+    expect(retry(el)).toBe('Retry')
+    const f = flaky()
+    const el2 = mountComp(RemoteBoundary, { name: 'y', title: 'Broken', retryLabel: 'Again' }, () => h(f.comp), () => {})
+    await flush()
+    expect(title(el2)).toBe('Broken')
+    expect(retry(el2)).toBe('Again')
+    const el3 = mountComp(RemoteErrorPage, { name: 'auth', error: new Error('e'), title: 'Down', retryLabel: 'Reload' })
+    expect(title(el3)).toBe('Down')
+    expect(retry(el3)).toBe('Reload')
+  })
+
+  it('RemoteErrorPage defaults', () => {
+    const el = mountComp(RemoteErrorPage, { name: 'auth', error: new Error('e') })
+    expect(title(el)).toBe('Không tải được auth')
+    expect(retry(el)).toBe('Thử lại')
+  })
+})
