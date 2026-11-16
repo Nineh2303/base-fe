@@ -14,4 +14,16 @@ describe('i18n', () => {
     expect(i18n.global.t('a.title')).toBe('A')
     expect(i18n.global.t('b.title')).toBe('B')
   })
+  it('registers a locale absent at creation and merges into an existing locale', () => {
+    const i18n = createMfI18n({ messages: { vi: { common: { ok: 'OK' } } } })
+    registerMessages(i18n, 'p', { vi: { t: 'V' }, fr: { t: 'F' } })
+    expect(i18n.global.t('common.ok')).toBe('OK')
+    expect(i18n.global.t('p.t')).toBe('V')
+    expect(i18n.global.t('p.t', {}, { locale: 'fr' })).toBe('F')
+  })
+  it('falls back to en when vi key is missing', () => {
+    const i18n = createMfI18n()
+    registerMessages(i18n, 'p', { en: { only: 'EN' } })
+    expect(i18n.global.t('p.only')).toBe('EN')
+  })
 })

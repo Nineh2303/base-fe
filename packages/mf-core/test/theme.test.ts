@@ -41,4 +41,16 @@ describe('theme', () => {
     t.setTokens('light', { 'color-primary': '#123' })
     expect(root().style.getPropertyValue('--mf-color-primary')).toBe('#123')
   })
+  it('ignores invalid stored value and uses defaultMode', () => {
+    localStorage.setItem('mf-theme', 'purple')
+    const t = createTheme({ tokens, defaultMode: 'dark' })
+    expect(t.mode.value).toBe('dark')
+    expect(root().getAttribute('data-theme')).toBe('dark')
+  })
+  it('honours custom storageKey', () => {
+    const t = createTheme({ tokens, storageKey: 'k' })
+    t.setMode('dark')
+    expect(localStorage.getItem('k')).toBe('dark')
+    expect(localStorage.getItem('mf-theme')).toBeNull()
+  })
 })
