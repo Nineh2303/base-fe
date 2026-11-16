@@ -130,3 +130,113 @@ describe('useMfContext', () => {
     expect(String(err.mock.calls[0]?.[0])).toMatch(/MfContext/)
   })
 })
+
+describe('RemoteBoundary edge cases', () => {
+  it('captures async onMounted rejection and event handler errors without reaching app handler', async () => {
+    const parentErr = vi.fn()
+    const C = defineComponent({
+      async setup() {
+        return () => h('p')
+      },
+      mounted() {
+        return Promise.reject(new Error('async-mounted'))
+      },
+    })
+    const el = mountComp(RemoteBoundary, { name: 'a' }, () => h(C), parentErr)
+    await flush()
+    expect(el.querySelector('.mf-remote-error')?.textContent).toContain('async-mounted')
+    expect(parentErr).not.toHaveBeenCalled()
+
+    const H = defineComponent({
+      setup: () => () =>
+        h('button', {
+          class: 'b',
+          onClick: () => {
+            throw new Error('handler')
+          },
+        }),
+    })
+    const parentErr2 = vi.fn()
+    const el2 = mountComp(RemoteBoundary, { name: 'h' }, () => h(H), parentErr2)
+    await flush()
+    ;(el2.querySelector('.b') as HTMLElement).click()
+    await flush()
+    expect(el2.querySelector('.mf-remote-error')?.textContent).toContain('handler')
+    expect(parentErr2).not.toHaveBeenCalled()
+  })
+
+  it('shows error frame again when retry fails again, without leaking timers', async () => {
+    vi.useFakeTimers()
+    const f = flaky()
+    const el = mountComp(RemoteBoundary, { name: 'r', timeout: 500 }, () => h(f.comp))
+    await flush()
+    for (let i = 0; i < 3; i++) {
+      expect(el.querySelectorAll('.mf-remote-error').length).toBe(1)
+      ;(el.querySelector('[data-test="mf-retry"]') as HTMLElement).click()
+      await flush()
+    }
+    expect(el.querySelectorAll('.mf-remote-error').length).toBe(1)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('late resolve after timeout does not flash content; sync slot never times out', async () => {
+    vi.useFakeTimers()
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    const late = defineComponent({
+      async setup() {
+        await gate
+        return () => h('i', { class: 'late' })
+      },
+    })
+    const el = mountComp(RemoteBoundary, { name: 'late', timeout: 100 }, () => h(late))
+    await flush()
+    vi.advanceTimersByTime(200)
+    await flush()
+    release()
+    await flush()
+    expect(el.querySelector('.mf-remote-error')).not.toBeNull()
+    expect(el.querySelector('.late')).toBeNull()
+
+    const sync = defineComponent({ setup: () => () => h('u', { class: 'sync' }) })
+    const el2 = mountComp(RemoteBoundary, { name: 's', timeout: 100 }, () => h(sync))
+    await flush()
+    vi.advanceTimersByTime(1000)
+    await flush()
+    expect(el2.querySelector('.sync')).not.toBeNull()
+    expect(el2.querySelector('.mf-remote-error')).toBeNull()
+  })
+
+  it('wrapping RouterView: navigating from failed route to healthy route clears the error', async () => {
+    const { createRouter, createMemoryHistory, RouterView } = await import('vue-router')
+    const Bad = defineComponent({
+      setup() {
+        throw new Error('bad-route')
+      },
+    })
+    const Good = defineComponent({ setup: () => () => h('p', { class: 'good' }, 'good') })
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/bad', component: Bad },
+        { path: '/good', component: Good },
+      ],
+    })
+    await router.push('/bad')
+    const el = document.createElement('div')
+    document.body.appendChild(el)
+    const app = createApp({ render: () => h(RemoteBoundary, { name: 'rt' }, { default: () => h(RouterView) }) })
+    app.use(router)
+    app.mount(el)
+    mounted.push(() => {
+      app.unmount()
+      el.remove()
+    })
+    await flush()
+    expect(el.querySelector('.mf-remote-error')?.textContent).toContain('bad-route')
+    await router.push('/good')
+    await flush()
+    expect(el.querySelector('.mf-remote-error')).toBeNull()
+    expect(el.querySelector('.good')).not.toBeNull()
+  })
+})

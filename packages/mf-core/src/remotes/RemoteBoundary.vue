@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onErrorCaptured, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onErrorCaptured, ref, watch } from 'vue'
+import { routeLocationKey } from 'vue-router'
 
 const props = withDefaults(defineProps<{ name: string; timeout?: number; error?: Error }>(), {
   timeout: 10000,
@@ -9,6 +10,21 @@ const emit = defineEmits<{ retry: [] }>()
 const caught = ref<Error | null>(null)
 const key = ref(0)
 let timer: ReturnType<typeof setTimeout> | undefined
+
+// Wrapping <RouterView/>: navigating to another route clears a captured error.
+const route = inject(routeLocationKey, null)
+if (route) {
+  watch(
+    () => route.fullPath,
+    () => {
+      if (caught.value) {
+        clearTimer()
+        caught.value = null
+        key.value++
+      }
+    },
+  )
+}
 
 const shown = computed(() => props.error ?? caught.value)
 
