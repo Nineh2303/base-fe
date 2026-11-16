@@ -6,9 +6,24 @@ Export chính:
 
 - `createMfApp({ root, routes, remotes, auth, api })` (host; tuỳ chọn thêm `loginPath`, `forbiddenPath`, `theme`, `i18n`, `history`). `remotes` là URL tới `remotes.json`, object hoặc hàm async; trả `{ app, ctx, mount }`.
 - `createStandaloneRemote({ name, routes, routePrefix, api, setup?, auth?, root? })` (chạy remote độc lập; `auth` mặc định là mock tự đăng nhập; route được đặt tên `<name>/...` giống khi chạy trong host).
-- Auth: `jwtAdapter`, `cookieAdapter`, `createMockAuthAdapter`, interface `AuthAdapter`, `useAuth`, `useAuthStore` (store id `mf-core/auth`), `installAuthGuard`.
-- `createHttpClient`, `createBus`, `createTheme`/`useTheme` (CSS variables `--mf-*`), `createMfI18n`/`registerMessages`, `useMfContext`, `RemoteBoundary`, `RemoteErrorPage`.
+- Auth: `jwtAdapter`, `cookieAdapter`, `createMockAuthAdapter`, interface `AuthAdapter`, `useAuth` (`user`, `status`, `isAuthenticated`, `permissions`, `login`, `logout`, `refresh`, `hasPermission`, `init`), `useAuthStore` (store id `mf-core/auth`), `installAuthGuard`.
+- `createHttpClient` (tuỳ chọn `trustedOrigins`), `createBus`, `createTheme`/`useTheme` (CSS variables `--mf-*`), `createMfI18n`/`registerMessages`, `useMfContext`, `RemoteBoundary`, `RemoteErrorPage`.
 - Kiểu: `RemoteSetup`, `MfContext`, `RemoteEntry`, `AuthUser`...
+
+### Host layout & widgets
+
+- `useMfLayout()` → `ComputedRef<boolean>`: `false` khi route hiện tại tắt layout (`meta.mfLayout === false`, ví dụ trang lỗi của remote `critical`); root layout dùng để ẩn header/menu.
+- `defineRemoteComponent('<remote>/<expose>')`: widget của remote nhúng vào trang host — component async bọc trong `RemoteBoundary` (lỗi/timeout hiện khung lỗi + thử lại tại chỗ). **Remote phải đã được tải trước** (khai báo trong `remotes.json` và `mount()` đã chạy `loadAll`), vì id được resolve qua runtime federation đã `register`.
+- `useMfContext().remotes`: `Ref<LoadedRemote[]>` — danh sách remote với `status: 'loading' | 'ready' | 'error'` (+ `error`, `menu`), dùng để dựng menu hoặc hiện trạng thái.
+- `RemoteBoundary` / `RemoteErrorPage` nhận thêm `title?`, `retryLabel?` (mặc định tiếng Việt). Lỗi setup/render/lifecycle/tải module chiếm khung; lỗi trong event handler chỉ log + chuyển tới `app.config.errorHandler`, nội dung giữ nguyên.
+
+### Export nâng cao
+
+`createRemoteLoader`, `mfRuntime` (runtime federation thật), `parseManifest`, `loadManifest` (đọc/kiểm tra `remotes.json`), và tuỳ chọn `trustedOrigins` của `createHttpClient` / `createMfApp({ api })` (xem dưới). Thường không cần dùng trực tiếp — `createMfApp` đã gọi.
+
+### Remote standalone và auth
+
+`createStandaloneRemote` mặc định dùng mock auth tự đăng nhập. Chế độ standalone **không có trang `/auth/login`** (trang đó do host / remote auth cung cấp), nên khi đổi sang `jwtAdapter` lúc chạy standalone cần tự thêm một route đăng nhập vào `routes` của remote và truyền `loginPath` tương ứng.
 
 ### HTTP client và token
 
