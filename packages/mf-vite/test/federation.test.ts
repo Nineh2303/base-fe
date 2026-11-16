@@ -57,6 +57,17 @@ describe('buildFederationOptions', () => {
     expect(o.shared.vue).toBeDefined()
   })
 
+  test('override một shared mặc định: merge theo key, singleton luôn true', () => {
+    const shared = buildShared(ctx.versions, {
+      vue: { requiredVersion: '^3.4.0' },
+      pinia: { singleton: false, eager: true },
+    })
+    expect(shared.vue).toEqual({ singleton: true, requiredVersion: '^3.4.0' })
+    expect(shared.pinia!.singleton).toBe(true)
+    expect(shared.pinia!.eager).toBe(true)
+    expect(shared.pinia!.requiredVersion).toBe(ctx.versions.pinia)
+  })
+
   test('tên remote không hợp lệ (không phải identifier JS) → throw', () => {
     expect(() =>
       buildFederationOptions('remote', { name: 'my-products', exposes: {} }, ctx),

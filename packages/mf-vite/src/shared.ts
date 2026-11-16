@@ -24,7 +24,8 @@ function isLocalSpec(spec: string): boolean {
 }
 
 /**
- * Build the shared config: the 5 mandatory singletons plus project extras (extras override defaults).
+ * Build the shared config: the 5 mandatory singletons plus project extras.
+ * Extras are merged per key; the 5 defaults always keep `singleton: true`.
  * For `@nineh-fe-base/mf-core`, local specs (`*`, `workspace:*`, `link:`, `file:`) map to `^<coreVersion>`.
  */
 export function buildShared(
@@ -44,5 +45,11 @@ export function buildShared(
     }
     shared[name] = requiredVersion ? { singleton: true, requiredVersion } : { singleton: true }
   }
-  return { ...shared, ...extra }
+  for (const [name, cfg] of Object.entries(extra)) {
+    shared[name] = { ...shared[name], ...cfg }
+  }
+  for (const name of DEFAULT_SHARED_NAMES) {
+    shared[name] = { ...shared[name], singleton: true }
+  }
+  return shared
 }
