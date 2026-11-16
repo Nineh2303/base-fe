@@ -4,7 +4,8 @@ Runtime lõi cho host/remote: singleton được chia sẻ giữa mọi app qua 
 
 Export chính:
 
-- `createMfApp({ root, routes, remotes, auth, api })` (host), `createStandaloneRemote(...)` (chạy remote độc lập).
+- `createMfApp({ root, routes, remotes, auth, api })` (host; tuỳ chọn thêm `loginPath`, `forbiddenPath`, `theme`, `i18n`, `history`). `remotes` là URL tới `remotes.json`, object hoặc hàm async; trả `{ app, ctx, mount }`.
+- `createStandaloneRemote({ name, routes, routePrefix, api, setup?, auth?, root? })` (chạy remote độc lập; `auth` mặc định là mock tự đăng nhập; route được đặt tên `<name>/...` giống khi chạy trong host).
 - Auth: `jwtAdapter`, `cookieAdapter`, `createMockAuthAdapter`, interface `AuthAdapter`, `useAuth`, `useAuthStore` (store id `mf-core/auth`), `installAuthGuard`.
 - `createHttpClient`, `createBus`, `createTheme`/`useTheme` (CSS variables `--mf-*`), `createMfI18n`/`registerMessages`, `useMfContext`, `RemoteBoundary`, `RemoteErrorPage`.
 - Kiểu: `RemoteSetup`, `MfContext`, `RemoteEntry`, `AuthUser`...

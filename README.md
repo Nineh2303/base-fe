@@ -91,7 +91,7 @@ npm install
 npm run dev       # shell :5000, auth-service :5001, products-service :5002 (dev server)
 npm run preview   # chạy bản build (tự build framework trước)
 npm test          # vitest
-npm run e2e       # Playwright (cần npm run build trước; lần đầu: npx playwright install chromium)
+npm run e2e       # Playwright (tự build + preview 3 app; lần đầu: npx playwright install chromium)
 ```
 
 Mở http://localhost:5000, đăng nhập `admin` / `admin`. API là mock bằng MSW (`playground/mocks`).
