@@ -8,6 +8,7 @@ import { useMfContext } from '../src/app/context'
 const mounted: Array<() => void> = []
 afterEach(() => {
   vi.useRealTimers()
+  vi.restoreAllMocks()
   mounted.splice(0).forEach((u) => u())
 })
 
@@ -47,13 +48,14 @@ function flaky() {
 }
 
 describe('RemoteBoundary', () => {
-  it('catches child error, shows name, does not propagate; retry remounts', async () => {
+  it('catches child error, shows name, forwards to app errorHandler once; retry remounts', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const f = flaky()
     const parentErr = vi.fn()
     const el = mountComp(RemoteBoundary, { name: 'orders' }, () => h(f.comp), parentErr)
     await flush()
     expect(el.querySelector('.mf-remote-error')?.textContent).toContain('orders')
-    expect(parentErr).not.toHaveBeenCalled()
+    expect(parentErr).toHaveBeenCalledTimes(1)
     f.heal()
     ;(el.querySelector('[data-test="mf-retry"]') as HTMLElement).click()
     await flush()
@@ -132,7 +134,8 @@ describe('useMfContext', () => {
 })
 
 describe('RemoteBoundary edge cases', () => {
-  it('captures async onMounted rejection and event handler errors without reaching app handler', async () => {
+  it('async onMounted rejection: frame shown, app errorHandler called once, console.error logged', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const parentErr = vi.fn()
     const C = defineComponent({
       async setup() {
@@ -145,24 +148,85 @@ describe('RemoteBoundary edge cases', () => {
     const el = mountComp(RemoteBoundary, { name: 'a' }, () => h(C), parentErr)
     await flush()
     expect(el.querySelector('.mf-remote-error')?.textContent).toContain('async-mounted')
-    expect(parentErr).not.toHaveBeenCalled()
+    expect(parentErr).toHaveBeenCalledTimes(1)
+    expect((parentErr.mock.calls[0]![0] as Error).message).toBe('async-mounted')
+    expect(errSpy.mock.calls.some((c) => String(c[0]).includes('[mf-core] remote a error'))).toBe(true)
+    errSpy.mockRestore()
+  })
 
-    const H = defineComponent({
+  for (const kind of ['sync', 'async'] as const) {
+    it(`${kind} click handler error: content stays, errorHandler once, console.error`, async () => {
+      const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const H = defineComponent({
+        setup: () => () =>
+          h('button', {
+            class: 'b',
+            onClick:
+              kind === 'sync'
+                ? () => {
+                    throw new Error('handler')
+                  }
+                : () => Promise.reject(new Error('handler')),
+          }),
+      })
+      const parentErr = vi.fn()
+      const el = mountComp(RemoteBoundary, { name: 'h' }, () => h(H), parentErr)
+      await flush()
+      ;(el.querySelector('.b') as HTMLElement).click()
+      await flush()
+      expect(el.querySelector('.mf-remote-error')).toBeNull()
+      expect(el.querySelector('.b')).not.toBeNull()
+      expect(parentErr).toHaveBeenCalledTimes(1)
+      expect((parentErr.mock.calls[0]![0] as Error).message).toBe('handler')
+      expect(errSpy.mock.calls.some((c) => String(c[0]).includes('[mf-core] remote h error'))).toBe(true)
+      errSpy.mockRestore()
+    })
+  }
+
+  it('component emit handler error (component event handler) is non-fatal too', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const Child = defineComponent({
+      emits: ['go'],
+      setup: (_, { emit }) => () => h('button', { class: 'c', onClick: () => emit('go') }),
+    })
+    const P = defineComponent({
       setup: () => () =>
-        h('button', {
-          class: 'b',
-          onClick: () => {
-            throw new Error('handler')
+        h(Child, {
+          onGo: () => {
+            throw new Error('emit-handler')
           },
         }),
     })
+    const parentErr = vi.fn()
+    const el = mountComp(RemoteBoundary, { name: 'e' }, () => h(P), parentErr)
+    await flush()
+    ;(el.querySelector('.c') as HTMLElement).click()
+    await flush()
+    expect(el.querySelector('.mf-remote-error')).toBeNull()
+    expect(parentErr).toHaveBeenCalledTimes(1)
+    errSpy.mockRestore()
+  })
+
+  it('setup / render errors: frame shown and errorHandler called once each', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const f = flaky()
+    const parentErr = vi.fn()
+    const el = mountComp(RemoteBoundary, { name: 's' }, () => h(f.comp), parentErr)
+    await flush()
+    expect(el.querySelector('.mf-remote-error')).not.toBeNull()
+    expect(parentErr).toHaveBeenCalledTimes(1)
+
+    const R = defineComponent({
+      render() {
+        throw new Error('render-boom')
+      },
+    })
     const parentErr2 = vi.fn()
-    const el2 = mountComp(RemoteBoundary, { name: 'h' }, () => h(H), parentErr2)
+    const el2 = mountComp(RemoteBoundary, { name: 'r' }, () => h(R), parentErr2)
     await flush()
-    ;(el2.querySelector('.b') as HTMLElement).click()
-    await flush()
-    expect(el2.querySelector('.mf-remote-error')?.textContent).toContain('handler')
-    expect(parentErr2).not.toHaveBeenCalled()
+    expect(el2.querySelector('.mf-remote-error')?.textContent).toContain('render-boom')
+    expect(parentErr2).toHaveBeenCalledTimes(1)
+    errSpy.mockRestore()
   })
 
   it('shows error frame again when retry fails again, without leaking timers', async () => {

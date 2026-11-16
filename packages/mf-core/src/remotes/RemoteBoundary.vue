@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onErrorCaptured, ref, watch } from 'vue'
+import { computed, getCurrentInstance, inject, onBeforeUnmount, onErrorCaptured, ref, watch } from 'vue'
 import { routeLocationKey } from 'vue-router'
 
 const props = withDefaults(defineProps<{ name: string; timeout?: number; error?: Error }>(), {
@@ -33,9 +33,32 @@ function clearTimer() {
   timer = undefined
 }
 
-onErrorCaptured((err) => {
-  clearTimer()
-  caught.value = err instanceof Error ? err : new Error(String(err))
+const appConfig = getCurrentInstance()?.appContext.config
+
+/**
+ * Event-handler errors (ErrorCodes NATIVE_EVENT_HANDLER=5 / COMPONENT_EVENT_HANDLER=6) are non-fatal:
+ * dev builds pass the type string, prod builds pass `https://vuejs.org/error-reference/#runtime-<code>`.
+ */
+function isEventHandlerError(info: string): boolean {
+  return /event handler$/.test(info) || /#runtime-(5|6)$/.test(info)
+}
+
+onErrorCaptured((err, instance, info) => {
+  console.error(`[mf-core] remote ${props.name} error`, err)
+  // We stop propagation (return false), so forward once to the app handler (Sentry etc.).
+  const handler = appConfig?.errorHandler
+  if (handler) {
+    try {
+      handler(err, instance, info)
+    } catch (handlerErr) {
+      console.error('[mf-core] app errorHandler threw', handlerErr)
+    }
+  }
+  if (!isEventHandlerError(info)) {
+    // Setup / render / lifecycle / async-load errors: take over the area.
+    clearTimer()
+    caught.value = err instanceof Error ? err : new Error(String(err))
+  }
   return false
 })
 
