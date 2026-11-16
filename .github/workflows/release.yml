@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -14,6 +16,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +27,7 @@ jobs:
           scope: '@nineh-fe-base'
       - run: npm ci
       - run: npm run build
+      - run: npm test
       - uses: changesets/action@v1
         with:
           publish: npx changeset publish
