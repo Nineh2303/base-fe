@@ -35,6 +35,34 @@ describe('jwtAdapter', () => {
     expect(localStorage.getItem('mf-refresh-token')).toBeNull()
   })
 
+  it('refresh 401 does not clear a refresh token rotated by another tab meanwhile (and uses it)', async () => {
+    localStorage.setItem('mf-refresh-token', 'rt-1')
+    mock.onPost('/auth/refresh').reply((c) => {
+      const { refreshToken } = JSON.parse(c.data)
+      if (refreshToken === 'rt-1') {
+        localStorage.setItem('mf-refresh-token', 'rt-2') // other tab won the rotation while we were in flight
+        return [401]
+      }
+      return refreshToken === 'rt-2' ? [200, { accessToken: 'AT2' }] : [401]
+    })
+    const a = jwtAdapter({ baseURL: 'http://x' })
+    expect(await a.refresh()).toBe(true)
+    expect(localStorage.getItem('mf-refresh-token')).toBe('rt-2')
+    expect(a.getAccessToken()).toBe('AT2')
+  })
+
+  it('refresh 401 after another tab rotated: if the newer token also fails, the newer one is the one cleared', async () => {
+    localStorage.setItem('mf-refresh-token', 'rt-1')
+    mock.onPost('/auth/refresh').reply((c) => {
+      if (JSON.parse(c.data).refreshToken === 'rt-1') localStorage.setItem('mf-refresh-token', 'rt-2')
+      return [401]
+    })
+    const a = jwtAdapter({ baseURL: 'http://x' })
+    expect(await a.refresh()).toBe(false)
+    expect(mock.history.post).toHaveLength(2)
+    expect(localStorage.getItem('mf-refresh-token')).toBeNull()
+  })
+
   it('refresh success updates access token and rotated refresh token', async () => {
     localStorage.setItem('mf-refresh-token', 'RT')
     mock.onPost('/auth/refresh').reply(200, { accessToken: 'AT2', refreshToken: 'RT2' })

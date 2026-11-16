@@ -63,21 +63,31 @@ export function jwtAdapter(opts: JwtAdapterOptions): AuthAdapter {
       }
     },
     async refresh() {
-      const refreshToken = getRefresh()
-      if (!refreshToken) return false
-      try {
-        const { data } = await client.post<{ accessToken: string; refreshToken?: string }>(endpoints.refresh, {
-          refreshToken,
-        })
-        accessToken = data.accessToken
-        if (data.refreshToken) setRefresh(data.refreshToken)
-        return true
-      } catch (e) {
-        // Network/5xx errors: keep the stored token, the session may still be valid.
-        const status = axios.isAxiosError(e) ? e.response?.status : undefined
-        if (status === 401 || status === 403 || status === 400) clear()
-        return false
+      let refreshToken = getRefresh()
+      // At most one retry: when another tab rotated the stored token while ours was in flight.
+      for (let attempt = 0; refreshToken && attempt < 2; attempt++) {
+        try {
+          const { data } = await client.post<{ accessToken: string; refreshToken?: string }>(endpoints.refresh, {
+            refreshToken,
+          })
+          accessToken = data.accessToken
+          if (data.refreshToken) setRefresh(data.refreshToken)
+          return true
+        } catch (e) {
+          // Network/5xx errors: keep the stored token, the session may still be valid.
+          const status = axios.isAxiosError(e) ? e.response?.status : undefined
+          if (status !== 401 && status !== 403 && status !== 400) return false
+          const stored = getRefresh()
+          if (stored === refreshToken) {
+            clear()
+            return false
+          }
+          // Another tab stored a newer token: never clear it; try it once.
+          accessToken = null
+          refreshToken = stored
+        }
       }
+      return false
     },
     async fetchUser() {
       if (!accessToken) return null
