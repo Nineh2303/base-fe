@@ -43,17 +43,25 @@ function unwrap<T>(mod: unknown): T {
   return mod as T
 }
 
-function major(version: string): string {
-  return version.trim().replace(/^[v=^~\s]+/, '').split('.')[0] ?? ''
+/**
+ * Semver compatibility key (ruling R6): `major` when major >= 1, `0.minor` while major is 0,
+ * because a 0.x minor bump is breaking.
+ */
+function compatKey(version: string): string {
+  const [maj = '', min = ''] = version.trim().replace(/^[v=^~\s]+/, '').split(/[.+-]/)
+  return maj === '0' ? `0.${min}` : maj
 }
 
 function checkMeta(meta: RemoteMeta | undefined, remote: string, hostVersion: string): void {
   if (!meta || typeof meta.coreVersion !== 'string') {
     throw new Error(`Remote "${remote}" exposes an invalid ./mf-meta (missing coreVersion)`)
   }
-  if (major(meta.coreVersion) !== major(hostVersion)) {
+  const remoteKey = compatKey(meta.coreVersion)
+  const hostKey = compatKey(hostVersion)
+  if (remoteKey !== hostKey) {
+    const kind = hostKey.startsWith('0.') && remoteKey.startsWith('0.') ? '0.x minor' : 'major'
     throw new Error(
-      `Remote "${remote}" was built with mf-core ${meta.coreVersion} but the host runs ${hostVersion} (major version mismatch)`,
+      `Remote "${remote}" was built with mf-core ${meta.coreVersion} but the host runs ${hostVersion} (incompatible version: ${kind} version mismatch)`,
     )
   }
   if (meta.name && meta.name !== remote) {

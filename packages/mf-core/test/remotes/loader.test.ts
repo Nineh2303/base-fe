@@ -189,6 +189,24 @@ describe('createRemoteLoader', () => {
     expect(router.currentRoute.value.matched[0]!.components!.default).not.toBe(RemoteErrorPage)
   })
 
+  it.each([
+    ['0.1.0', '0.2.0', 'error'],
+    ['0.2.0', '0.1.0', 'error'],
+    ['0.1.0', '0.1.5', 'ready'],
+    ['1.3.0', '1.9.0', 'ready'],
+    ['1.3.0', '0.3.0', 'error'],
+  ] as const)('compatibility: host %s vs remote %s → %s', async (host, remote, expected) => {
+    const { runtime, loads } = fakeRuntime(remoteMods('products', { coreVersion: remote }))
+    const loader = createRemoteLoader({ runtime, router: makeRouter(), ctxRef: () => ctx, coreVersion: host })
+    await loader.loadAll([entry('products')])
+    const r = loader.remotes.value[0]!
+    expect(r.status).toBe(expected)
+    if (expected === 'error') {
+      expect(r.error?.message).toMatch(/incompatible version/)
+      expect(loads).toEqual(['products/mf-meta'])
+    }
+  })
+
   it('the bare prefix of a failed remote also shows the error', async () => {
     const { runtime } = fakeRuntime(remoteMods('products', { coreVersion: '2.0.0' }))
     const router = makeRouter()

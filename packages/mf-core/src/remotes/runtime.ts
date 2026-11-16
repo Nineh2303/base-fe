@@ -25,6 +25,10 @@ function instance(): ModuleFederation {
   } catch {
     // __FEDERATION__ not initialised yet
   }
+  // Only reached once: after init() the module-local instance exists.
+  console.warn(
+    '[mf-core] mfRuntime: no Module Federation host instance found; creating a fallback instance. Shared singletons are not configured',
+  )
   return init({ name: FALLBACK_HOST, remotes: [] })
 }
 
