@@ -17,6 +17,8 @@ export interface RemoteLoaderDeps {
   router: Router
   ctxRef: () => MfContext
   coreVersion?: string
+  /** Max time a single remote may take to load before it is marked `error`. Default 10000; 0 disables. */
+  timeoutMs?: number
 }
 
 export interface RemoteLoader {
@@ -112,6 +114,7 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
   const remotes = ref<LoadedRemote[]>([])
   const names = new Set<string>()
   const prefixes = new Set<string>()
+  const timeoutMs = deps.timeoutMs ?? 10000
 
   let resolveReady!: () => void
   const ready = new Promise<void>((r) => (resolveReady = r))
@@ -138,14 +141,21 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
     return setup as RemoteSetup
   }
 
-  async function loadOne(entry: RemoteEntry): Promise<void> {
+  async function loadOne(entry: RemoteEntry, state: { aborted: boolean }): Promise<void> {
     const { name } = entry
+    const stop = () => {
+      if (state.aborted) throw new Error(`Remote "${name}" load was abandoned after timing out`)
+    }
     runtime.register([{ name, entry: entry.entry }])
     checkMeta(unwrap<RemoteMeta>(await runtime.load(`${name}/mf-meta`)), name, hostVersion)
+    stop()
     const routes = unwrap<unknown>(await runtime.load(`${name}/routes`))
+    stop()
     if (!Array.isArray(routes)) throw new Error(`Remote "${name}" ./routes must export an array of routes`)
     const setup = await loadSetup(name)
+    stop()
     if (setup) await setup(deps.ctxRef())
+    stop()
     router.addRoute({
       path: entry.routePrefix,
       name,
@@ -164,6 +174,22 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
       component: errorView(entry, error),
       meta: entry.critical ? { mfRemote: entry.name, mfLayout: false } : { mfRemote: entry.name },
     })
+  }
+
+  /** Races `loadOne` against the timeout so a hanging remote cannot block `ready` forever. */
+  function loadWithTimeout(entry: RemoteEntry): Promise<void> {
+    const state = { aborted: false }
+    const run = loadOne(entry, state)
+    if (!(timeoutMs > 0) || !Number.isFinite(timeoutMs)) return run
+    let timer: ReturnType<typeof setTimeout>
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        state.aborted = true
+        reject(new Error(`Remote "${entry.name}" did not load within ${timeoutMs}ms (timeout)`))
+      }, timeoutMs)
+    })
+    run.catch(() => {}) // a late failure after the timeout is already reported
+    return Promise.race([run, timeout]).finally(() => clearTimeout(timer))
   }
 
   async function loadAll(entries: RemoteEntry[]): Promise<void> {
@@ -189,7 +215,7 @@ export function createRemoteLoader(deps: RemoteLoaderDeps): RemoteLoader {
       await Promise.allSettled(
         accepted.map(async (e) => {
           try {
-            await loadOne(e)
+            await loadWithTimeout(e)
             setStatus(e.name, 'ready')
           } catch (raw) {
             const err = toError(raw)
