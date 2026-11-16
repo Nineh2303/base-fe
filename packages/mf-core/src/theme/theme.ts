@@ -15,12 +15,20 @@ export const DEFAULT_TOKENS: Record<ThemeMode, ThemeTokens> = {
     'color-bg': '#ffffff',
     'color-text': '#111827',
     'color-border': '#e5e7eb',
+    'color-danger': '#dc2626',
+    'color-on-primary': '#ffffff',
+    radius: '6px',
+    'font-family': 'system-ui, sans-serif',
   },
   dark: {
     'color-primary': '#60a5fa',
     'color-bg': '#111827',
     'color-text': '#f9fafb',
     'color-border': '#374151',
+    'color-danger': '#f87171',
+    'color-on-primary': '#111827',
+    radius: '6px',
+    'font-family': 'system-ui, sans-serif',
   },
 }
 

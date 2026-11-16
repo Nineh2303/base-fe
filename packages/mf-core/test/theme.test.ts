@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createTheme } from '../src/theme/theme'
+import { createTheme, DEFAULT_TOKENS } from '../src/theme/theme'
 
 const tokens = { light: { 'color-primary': '#00f' }, dark: { 'color-primary': '#88f' } }
 const root = () => document.documentElement
@@ -52,5 +52,16 @@ describe('theme', () => {
     t.setMode('dark')
     expect(localStorage.getItem('k')).toBe('dark')
     expect(localStorage.getItem('mf-theme')).toBeNull()
+  })
+  it('DEFAULT_TOKENS cover every token used by the error views (light + dark)', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const k of ['color-primary', 'color-bg', 'color-text', 'color-border', 'color-danger', 'color-on-primary', 'radius', 'font-family']) {
+        expect(DEFAULT_TOKENS[mode][k], `${mode}.${k}`).toBeTruthy()
+      }
+    }
+    expect(DEFAULT_TOKENS.light['color-danger']).toBe('#dc2626')
+    expect(DEFAULT_TOKENS.light['color-on-primary']).toBe('#ffffff')
+    expect(DEFAULT_TOKENS.light.radius).toBe('6px')
+    expect(DEFAULT_TOKENS.light['font-family']).toBe('system-ui, sans-serif')
   })
 })
