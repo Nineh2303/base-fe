@@ -115,12 +115,16 @@ export async function createMfApp(opts: MfAppOptions): Promise<MfAppHandle> {
   const ctx: MfContext = { app, pinia, router, i18n, bus, auth, http, remotes: loader.remotes }
   app.provide(MF_CONTEXT_KEY, ctx)
 
+  // Notifications raised before mount are queued and emitted right after app.mount,
+  // so listeners registered in the root component's setup receive them.
+  const pendingNotify: string[] = []
+
   async function loadRemotes(): Promise<void> {
     if (!opts.remotes) return loader.loadAll([])
     const { remotes, errors } = await loadManifest(opts.remotes)
     for (const message of errors) {
       console.error(`${PREFIX} Remote manifest: ${message}`)
-      bus.emit('notify', { type: 'error', message: `Remote manifest: ${message}` })
+      pendingNotify.push(`Remote manifest: ${message}`)
     }
     return loader.loadAll(remotes)
   }
@@ -137,6 +141,7 @@ export async function createMfApp(opts: MfAppOptions): Promise<MfAppHandle> {
       app.use(router)
       await router.isReady()
       app.mount(el)
+      for (const message of pendingNotify.splice(0)) bus.emit('notify', { type: 'error', message })
     })()
     return mounting
   }

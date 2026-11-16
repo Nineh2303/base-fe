@@ -127,6 +127,32 @@ describe('createMfApp', () => {
     expect(errSpy.mock.calls.some((c) => String(c[0]).startsWith('[mf-core]'))).toBe(true)
   })
 
+  it('manifest error notify reaches a listener registered in the root component setup', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const notes: { type: string; message: string }[] = []
+    const ListeningRoot = defineComponent({
+      setup() {
+        useMfContext().bus.on('notify', (n) => notes.push(n))
+        return () => h('div', { class: 'root' }, [h(RouterView)])
+      },
+    })
+    const handle = track(
+      await createMfApp({
+        root: ListeningRoot,
+        routes: [{ path: '/', name: 'home', component: Page('home') }],
+        remotes: () => Promise.reject(new Error('boom')),
+        auth: createMockAuthAdapter(),
+        api: { baseURL: 'http://api' },
+        history: historyAt('/'),
+        runtime: fakeRuntime({}),
+      }),
+    )
+    await handle.mount(el())
+    expect(notes).toHaveLength(1)
+    expect(notes[0]).toMatchObject({ type: 'error' })
+    expect(notes[0]!.message).toContain('boom')
+  })
+
   it('ctx.http sends the access token after login', async () => {
     const handle = track(
       await createMfApp({
