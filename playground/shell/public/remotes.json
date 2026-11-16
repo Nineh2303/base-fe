@@ -1,0 +1,16 @@
+{
+  "remotes": [
+    {
+      "name": "auth",
+      "entry": "http://localhost:5001/mf-manifest.json",
+      "routePrefix": "/auth",
+      "critical": true
+    },
+    {
+      "name": "products",
+      "entry": "http://localhost:5002/mf-manifest.json",
+      "routePrefix": "/products",
+      "menu": { "label": "Sản phẩm", "order": 1 }
+    }
+  ]
+}

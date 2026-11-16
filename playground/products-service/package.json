@@ -1,0 +1,29 @@
+{
+  "name": "products-service",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite build && vite preview"
+  },
+  "dependencies": {
+    "@module-federation/runtime": "^2.9.3",
+    "@nineh-fe-base/mf-core": "*",
+    "@playground/mocks": "*",
+    "pinia": "^4.1.0",
+    "vue": "^3.5.45",
+    "vue-i18n": "^11.4.20",
+    "vue-router": "^5.5.1"
+  },
+  "devDependencies": {
+    "@nineh-fe-base/mf-vite": "*",
+    "vite": "^8.3.8"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

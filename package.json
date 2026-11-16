@@ -11,7 +11,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "echo \"dev is finalised in Task 8 (playground)\"",
+    "build:framework": "npm run build -w @nineh-fe-base/mf-vite -w @nineh-fe-base/mf-core",
+    "predev": "npm run build:framework",
+    "prepreview": "npm run build:framework",
+    "dev": "concurrently -k -n shell,auth,products -c blue,green,magenta \"npm run dev -w shell\" \"npm run dev -w auth-service\" \"npm run dev -w products-service\"",
+    "preview": "concurrently -k -n shell,auth,products -c blue,green,magenta \"npm run preview -w shell\" \"npm run preview -w auth-service\" \"npm run preview -w products-service\"",
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
     "lint": "eslint .",
