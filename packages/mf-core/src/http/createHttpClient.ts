@@ -19,7 +19,7 @@ export interface HttpAuthHooks {
 }
 
 export function createHttpClient(
-  config: AxiosRequestConfig & { auth?: HttpAuthHooks; withCredentials?: boolean } = {},
+  config: Omit<AxiosRequestConfig, 'auth'> & { auth?: HttpAuthHooks; withCredentials?: boolean } = {},
 ): AxiosInstance {
   const { auth, ...axiosConfig } = config
   const http = axios.create(axiosConfig)
@@ -31,7 +31,7 @@ export function createHttpClient(
   const refreshOnce = (hooks: HttpAuthHooks): Promise<boolean> => {
     if (!refreshing) {
       refreshing = (async () => {
-        let ok = false
+        let ok: boolean
         try {
           ok = await hooks.refresh()
         } catch {
@@ -59,8 +59,14 @@ export function createHttpClient(
     if (!auth || !original || error.response?.status !== 401 || original.skipAuth || original._retried) {
       throw error
     }
-    const ok = await refreshOnce(auth)
-    if (!ok) throw error
+    // Token already rotated since this request was sent (late 401 from a stale token): just replay.
+    const current = auth.getAccessToken()
+    const sent = original.headers?.get?.('Authorization')
+    const stale = !!current && sent !== `Bearer ${current}`
+    if (!stale) {
+      const ok = await refreshOnce(auth)
+      if (!ok) throw error
+    }
     original._retried = true
     return http.request(original)
   })

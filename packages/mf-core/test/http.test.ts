@@ -80,3 +80,97 @@ describe('createHttpClient', () => {
     expect(http.defaults.withCredentials).toBe(true)
   })
 })
+
+function deferred<T>() {
+  let resolve!: (v: T) => void
+  const promise = new Promise<T>((r) => (resolve = r))
+  return { promise, resolve }
+}
+const tick = () => new Promise((r) => setTimeout(r, 0))
+
+describe('createHttpClient concurrency edges', () => {
+  it('request issued while refresh is in flight ends up with the new token and no extra refresh', async () => {
+    const gate = deferred<boolean>()
+    let token = 'old'
+    const refresh = vi.fn(async () => {
+      const ok = await gate.promise
+      token = 'new'
+      return ok
+    })
+    const { http, mock } = setup({ getAccessToken: () => token, refresh })
+    mock.onGet('/a').reply((c) => (c.headers?.Authorization === 'Bearer new' ? [200, 'ok'] : [401]))
+    const first = http.get('/a')
+    await tick()
+    expect(refresh).toHaveBeenCalledTimes(1)
+    const second = http.get('/a') // issued mid-refresh
+    await tick()
+    gate.resolve(true)
+    expect((await first).data).toBe('ok')
+    expect((await second).data).toBe('ok')
+    expect(refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('stale-token 401 arriving after refresh settled does not trigger a second refresh', async () => {
+    const { http, mock, auth } = setup()
+    const slow = deferred<void>()
+    mock.onGet('/slow').reply(async (c) => {
+      await slow.promise
+      return c.headers?.Authorization === 'Bearer new' ? [200, 'ok'] : [401]
+    })
+    mock.onGet('/a').reply((c) => (c.headers?.Authorization === 'Bearer new' ? [200, 'ok'] : [401]))
+    const s = http.get('/slow') // sent with old token
+    await http.get('/a') // refresh -> new token
+    expect(auth.refresh).toHaveBeenCalledTimes(1)
+    slow.resolve()
+    expect((await s).data).toBe('ok')
+    expect(auth.refresh).toHaveBeenCalledTimes(1)
+  })
+
+  it('after a failed cycle a later 401 starts a fresh refresh cycle', async () => {
+    const refresh = vi.fn(async () => false)
+    const { http, mock, auth } = setup({ refresh })
+    mock.onGet('/a').reply(401)
+    await expect(http.get('/a')).rejects.toMatchObject({ response: { status: 401 } })
+    await expect(http.get('/a')).rejects.toMatchObject({ response: { status: 401 } })
+    expect(refresh).toHaveBeenCalledTimes(2)
+    expect(auth.onAuthFailure).toHaveBeenCalledTimes(2)
+  })
+
+  it('non-401 errors and network errors pass through without refresh', async () => {
+    const { http, mock, auth } = setup()
+    mock.onGet('/500').reply(500)
+    mock.onGet('/net').networkError()
+    await expect(http.get('/500')).rejects.toMatchObject({ response: { status: 500 } })
+    await expect(http.get('/net')).rejects.toMatchObject({ message: 'Network Error' })
+    expect(auth.refresh).not.toHaveBeenCalled()
+    expect(auth.onAuthFailure).not.toHaveBeenCalled()
+  })
+
+  it('skipAuth request that gets 401 does not refresh', async () => {
+    const { http, mock, auth } = setup()
+    mock.onGet('/a').reply(401)
+    await expect(http.get('/a', { skipAuth: true })).rejects.toMatchObject({ response: { status: 401 } })
+    expect(auth.refresh).not.toHaveBeenCalled()
+  })
+
+  for (const mode of ['throw', 'reject'] as const) {
+    it(`onAuthFailure ${mode}s -> requests still settle (no hang)`, async () => {
+      const onAuthFailure = vi.fn(() => {
+        if (mode === 'throw') throw new Error('x')
+        return Promise.reject(new Error('x'))
+      })
+      const { http, mock } = setup({ refresh: async () => false, onAuthFailure })
+      mock.onGet('/a').reply(401)
+      const rs = await Promise.race([
+        Promise.allSettled([http.get('/a'), http.get('/a')]),
+        new Promise<'hang'>((r) => setTimeout(() => r('hang'), 500)),
+      ])
+      expect(rs).not.toBe('hang')
+      expect((rs as PromiseSettledResult<unknown>[]).every((r) => r.status === 'rejected')).toBe(true)
+      expect(onAuthFailure).toHaveBeenCalledTimes(1)
+      // and a subsequent 401 is not stuck on a stale promise
+      await expect(http.get('/a')).rejects.toBeDefined()
+      expect(onAuthFailure).toHaveBeenCalledTimes(2)
+    })
+  }
+})
