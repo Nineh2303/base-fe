@@ -361,6 +361,22 @@ describe('createStandaloneRemote', () => {
     expect(setup).toHaveBeenCalledWith(handle.ctx)
   })
 
+  it('default mock user passes meta.permissions gates (wildcard)', async () => {
+    const handle = track(
+      await createStandaloneRemote({
+        name: 'products',
+        routes: [{ path: 'admin', name: 'admin', component: Page('admin-page'), meta: { requiresAuth: true, permissions: ['products.admin', 'x'] } }],
+        routePrefix: '/products',
+        api: { baseURL: 'http://api' },
+        history: historyAt('/products/admin'),
+      }),
+    )
+    const target = el()
+    await handle.mount(target)
+    expect(handle.ctx.router.currentRoute.value.path).toBe('/products/admin')
+    expect(target.textContent).toContain('admin-page')
+  })
+
   it('redirects / to routePrefix and scopes route names', async () => {
     const handle = track(
       await createStandaloneRemote({

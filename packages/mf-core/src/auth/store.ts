@@ -87,6 +87,7 @@ export const useAuthStore = defineStore('mf-core/auth', () => {
   function hasPermission(p: string | string[]): boolean {
     const needed = Array.isArray(p) ? p : [p]
     const have = permissions.value
+    if (have.includes('*')) return true
     return needed.every((x) => have.includes(x))
   }
 

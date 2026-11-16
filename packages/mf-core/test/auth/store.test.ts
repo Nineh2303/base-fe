@@ -84,6 +84,14 @@ describe('auth store', () => {
     expect(s.permissions).toEqual(['a'])
   })
 
+  it("hasPermission: '*' grants every permission", async () => {
+    configureAuth(createMockAuthAdapter({ user: { ...user, permissions: ['*'] } }), createBus())
+    const s = useAuthStore()
+    await s.login({})
+    expect(s.hasPermission(['a', 'b'])).toBe(true)
+    expect(s.hasPermission('anything')).toBe(true)
+  })
+
   it('concurrent refresh shares one in-flight promise', async () => {
     const adapter: AuthAdapter = { ...createMockAuthAdapter(), refresh: vi.fn(async () => true) }
     configureAuth(adapter, createBus())
