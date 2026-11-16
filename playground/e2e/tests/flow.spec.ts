@@ -105,3 +105,9 @@ test('single Vue instance: __SHARE__ has one vue version; header and remote see 
   await expect(page.locator('[data-test=user-name]')).toHaveText('Admin')
   await expect(page.locator('[data-test=product-row]')).toHaveCount(3) // remote fetched with host's token
 })
+
+test('products-service standalone (:5002/products, mock auth) renders 3 product rows', async ({ page }) => {
+  await page.goto('http://localhost:5002/products')
+  await expect(page.locator('[data-test=product-row]')).toHaveCount(3)
+  expect(new URL(page.url()).pathname).toBe('/products')
+})
