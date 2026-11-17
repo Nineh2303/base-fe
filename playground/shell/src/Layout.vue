@@ -64,7 +64,7 @@ async function onLogout() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem data-test="user-menu-logout" @select="onLogout">Đăng xuất</DropdownMenuItem>
+              <DropdownMenuItem data-test="user-menu-home" @select="router.push('/')">Trang chủ</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button type="button" size="sm" data-test="logout" @click="onLogout">Đăng xuất</Button>

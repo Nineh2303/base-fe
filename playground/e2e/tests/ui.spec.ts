@@ -27,7 +27,7 @@ test('dialog keeps scoped token', async ({ page }) => {
   const dialog = page.locator('[data-test=product-dialog]')
   await expect(dialog).toBeVisible()
   expect(await dialog.evaluate((el) => !!el.closest('[data-mf-remote="products"]'))).toBe(true)
-  expect(await bg(dialog.locator('button[data-variant=default], [data-test=dialog-confirm]').first())).toBe(PRODUCTS_PRIMARY)
+  expect(await bg(dialog.locator('[data-test=dialog-confirm]'))).toBe(PRODUCTS_PRIMARY)
 })
 
 test('dark mode switches host and remote', async ({ page }) => {
@@ -68,7 +68,7 @@ test('Escape closes the dialog and focus returns to the trigger', async ({ page 
 test('shell dropdown opens in shell scope with default primary', async ({ page }) => {
   await loginToProducts(page)
   await page.locator('[data-test=user-menu]').click()
-  const item = page.locator('[data-test=user-menu-logout]')
+  const item = page.locator('[data-test=user-menu-home]')
   await expect(item).toBeVisible()
   expect(await item.evaluate((el) => !!el.closest('[data-mf-remote]'))).toBe(false)
   await item.hover()

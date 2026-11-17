@@ -54,6 +54,16 @@ describe.skipIf(!hasDist)('styles compile through tailwind', () => {
     }
   })
 
+  it('tw-animate-css utilities used by dialog/dropdown are generated from dist', async () => {
+    for (const entry of ['host', 'remote'] as const) {
+      const { css } = await build(entry)
+      // classes are used as data-[state=open]:zoom-in-95 etc.; check the generated rules and keyframes
+      expect(css).toContain(':zoom-in-95')
+      expect(css).toContain(':animate-in')
+      expect(css).toContain(':fade-out-0')
+    }
+  })
+
   it('tokens: dark variant, radius and font mapping', async () => {
     const { css } = await build('remote', ['dark:bg-card', 'rounded-md', 'rounded-lg', 'rounded-sm', 'rounded-xl', 'font-sans'])
     expect(css).toContain('.dark\\:bg-card:where([data-theme=dark], [data-theme=dark] *)')
