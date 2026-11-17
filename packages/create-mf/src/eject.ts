@@ -40,11 +40,21 @@ function listFiles(dir: string, prefix = ''): string[] {
 const SPECIFIER = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])(\.\.\/[^'"\n]+)\2/g
 
 /** Rewrite relative imports that point outside the component directory. */
-export function rewriteImports(source: string, keepRelative: ReadonlySet<string>): string {
+export function rewriteImports(
+  source: string,
+  keepRelative: ReadonlySet<string>,
+  known?: ReadonlySet<string>,
+  onUnknown?: (spec: string) => void,
+): string {
   return source.replace(SPECIFIER, (match, lead: string, quote: string, spec: string) => {
     if (spec.startsWith('../../')) return `${lead}'${UI_PACKAGE}'`
     const sibling = spec.slice(3).split('/')[0]
     if (keepRelative.has(sibling)) return match
+    // Unknown `../x` is not a ui component: leave it untouched and warn.
+    if (known && !known.has(sibling)) {
+      onUnknown?.(spec)
+      return match
+    }
     return `${lead}'${UI_PACKAGE}'`
   })
 }
@@ -65,14 +75,16 @@ export async function ejectComponents(opts: EjectOptions): Promise<{ written: st
   if (unknown.length) throw new Error(`Unknown component${unknown.length > 1 ? 's' : ''}: ${unknown.join(', ')}.\n${list}`)
 
   const names = [...new Set(opts.names)]
+  const knownSet = new Set(available)
+  const warnings = new Set<string>()
   const keepRelative = new Set(names)
-  for (const n of available) if (existsSync(join(targetRoot, n))) keepRelative.add(n)
+  for (const n of available) if (existsSync(join(targetRoot, n, 'index.ts'))) keepRelative.add(n)
 
   const plan: { file: string; content: Buffer | string }[] = []
   for (const name of names) {
     for (const rel of listFiles(join(componentsDir, name))) {
       const raw = await readFile(join(componentsDir, name, rel))
-      const content = /\.(ts|vue)$/.test(rel) ? rewriteImports(raw.toString('utf8'), keepRelative) : raw
+      const content = /\.(ts|vue)$/.test(rel) ? rewriteImports(raw.toString('utf8'), keepRelative, knownSet, (spec) => warnings.add(`${rel}: left unknown import '${spec}' untouched`)) : raw
       plan.push({ file: join(targetRoot, name, rel), content })
     }
   }
@@ -88,5 +100,6 @@ export async function ejectComponents(opts: EjectOptions): Promise<{ written: st
     await mkdir(dirname(file), { recursive: true })
     await writeFile(file, content)
   }
+  for (const w of warnings) console.warn(`warning: ${w}`)
   return { written: plan.map((p) => p.file) }
 }

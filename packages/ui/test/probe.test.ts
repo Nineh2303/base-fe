@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { mount } from '@vue/test-utils'
@@ -68,7 +68,7 @@ describe('component probes', () => {
 
 describe.skipIf(!hasDist)('package exports (dist)', () => {
   it('dist exposes the public API', async () => {
-    const m = await import(/* @vite-ignore */ '@nineh-fe-base/ui')
+    const m = await import(/* @vite-ignore */ pathToFileURL(resolve(here, '../dist/index.js')).href)
     for (const k of ['cn', 'buttonVariants', 'badgeVariants', 'Button', 'Badge', 'Card', 'Input', 'Label', 'Textarea', 'Checkbox', 'Switch', 'Avatar', 'Separator', 'Skeleton']) {
       expect(m, k).toHaveProperty(k)
     }

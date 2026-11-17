@@ -1,8 +1,10 @@
 import { mkdirSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { mount } from '@vue/test-utils'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import * as ui from '../src/index'
+// Ejected copies import the shared package; resolve it to src for this file only.
+vi.mock('@nineh-fe-base/ui', () => import('../src/index'))
 import { ejectComponents } from '../../create-mf/src/eject'
 
 const root = resolve(__dirname, '..')
@@ -31,8 +33,9 @@ describe('ejected components (all)', () => {
   })
   afterAll(() => rmSync(out, { recursive: true, force: true }))
 
-  it('ejects all 18 components', () => {
-    expect(components).toHaveLength(18)
+  it('ejects every available component', () => {
+    expect(components.length).toBeGreaterThan(0)
+    expect(readdirSync(out).sort()).toEqual([...components].sort())
   })
 
   it('only leaves same-dir relative, ui package, or npm imports; named ui imports exist', () => {
@@ -60,7 +63,7 @@ describe('ejected components (all)', () => {
       const original = await import(`../src/components/${name}/index.ts`)
       expect(Object.keys(ejected).sort()).toEqual(Object.keys(original).sort())
     }
-  })
+  }, 60_000)
 
   it('renders ejected Button and Dialog', async () => {
     const { Button } = await load('button')

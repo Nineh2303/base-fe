@@ -1,4 +1,4 @@
-import { basename, resolve } from 'node:path'
+import { basename, relative, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import * as p from '@clack/prompts'
 import { ejectComponents } from './eject'
@@ -49,7 +49,7 @@ async function main(): Promise<void> {
         dir: values.dir,
         force: values.force,
       })
-      console.log(['Ejected ' + written.length + ' file(s):', ...written.map((f) => '  ' + f)].join('\n'))
+      console.log(['Ejected ' + written.length + ' file(s):', ...written.map((f) => '  ' + relative(process.cwd(), f))].join('\n'))
     } catch (err) {
       fail(err instanceof Error ? err.message : String(err))
     }

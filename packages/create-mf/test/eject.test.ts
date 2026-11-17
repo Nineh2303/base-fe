@@ -117,3 +117,12 @@ describe('ejectComponents', () => {
     expect(read('src/components/ui/button/Button.vue')).toBe('x')
   })
 })
+
+describe('rewriteImports unknown siblings', () => {
+  it('leaves ../x untouched when x is not a known component', async () => {
+    const { rewriteImports } = await import('../src/eject')
+    const out = rewriteImports("import a from '../mystery'\nimport b from '../button'", new Set(), new Set(['button']))
+    expect(out).toContain("'../mystery'")
+    expect(out).toContain("import b from '@nineh-fe-base/ui'")
+  })
+})
