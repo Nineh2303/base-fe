@@ -11,6 +11,9 @@ import { http, HttpResponse } from 'msw'
 
 export const ADMIN = { id: '1', name: 'Admin', permissions: ['products.read'] }
 
+/** A signed-in user without `products.read`: exercises the /403 path. Login: viewer / viewer. */
+export const VIEWER = { id: '2', name: 'Viewer', permissions: [] as string[] }
+
 export const PRODUCTS = [
   { id: 1, name: 'Bàn phím', price: 500000 },
   { id: 2, name: 'Chuột', price: 250000 },
@@ -26,6 +29,8 @@ interface TokenStore {
   seq: number
   access: string[]
   refresh: string[]
+  /** token -> user id (absent = admin), so /me and refresh keep returning the user the token was issued to */
+  owners?: Record<string, string>
 }
 
 function read(): TokenStore {
@@ -49,10 +54,11 @@ function write(s: TokenStore): void {
   }
 }
 
-function issue(): { accessToken: string; refreshToken: string } {
+function issue(owner = '1'): { accessToken: string; refreshToken: string } {
   const s = read()
   s.seq += 1
   const pair = { accessToken: `at-${s.seq}`, refreshToken: `rt-${s.seq}` }
+  s.owners = { ...s.owners, [pair.accessToken]: owner, [pair.refreshToken]: owner }
   s.access.push(pair.accessToken)
   s.refresh.push(pair.refreshToken)
   write(s)
@@ -66,6 +72,10 @@ function revokeRefresh(token: unknown): boolean {
   s.refresh.splice(i, 1)
   write(s)
   return true
+}
+
+function ownerOf(token: unknown): string {
+  return (typeof token === 'string' && read().owners?.[token]) || '1'
 }
 
 function bearer(request: Request): string | null {
@@ -92,17 +102,17 @@ const unauthorized = () => HttpResponse.json({ message: 'Unauthorized' }, { stat
 export const handlers = [
   http.post('/api/auth/login', async ({ request }) => {
     const { username, password } = await body(request)
-    if (username !== 'admin' || password !== 'admin') {
-      return HttpResponse.json({ message: 'Sai tên đăng nhập hoặc mật khẩu' }, { status: 401 })
-    }
-    return HttpResponse.json({ ...issue(), user: ADMIN })
+    const user = username === 'admin' && password === 'admin' ? ADMIN : username === 'viewer' && password === 'viewer' ? VIEWER : null
+    if (!user) return HttpResponse.json({ message: 'Sai tên đăng nhập hoặc mật khẩu' }, { status: 401 })
+    return HttpResponse.json({ ...issue(user.id), user })
   }),
 
   http.post('/api/auth/refresh', async ({ request }) => {
     const { refreshToken } = await body(request)
     // Rotation: the old refresh token is single-use.
+    const owner = ownerOf(refreshToken)
     if (!revokeRefresh(refreshToken)) return unauthorized()
-    return HttpResponse.json(issue())
+    return HttpResponse.json(issue(owner))
   }),
 
   http.post('/api/auth/logout', async ({ request }) => {
@@ -111,7 +121,9 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
-  http.get('/api/auth/me', ({ request }) => (isValidAccess(request) ? HttpResponse.json(ADMIN) : unauthorized())),
+  http.get('/api/auth/me', ({ request }) =>
+    isValidAccess(request) ? HttpResponse.json(ownerOf(bearer(request)) === VIEWER.id ? VIEWER : ADMIN) : unauthorized(),
+  ),
 
   http.get('/api/products', ({ request }) => (isValidAccess(request) ? HttpResponse.json(PRODUCTS) : unauthorized())),
 ]

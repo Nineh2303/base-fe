@@ -2,7 +2,7 @@
 import { setupWorker } from 'msw/browser'
 import { handlers } from './handlers'
 
-export { handlers, ADMIN, PRODUCTS } from './handlers'
+export { handlers, ADMIN, VIEWER, PRODUCTS } from './handlers'
 
 let started: Promise<unknown> | null = null
 

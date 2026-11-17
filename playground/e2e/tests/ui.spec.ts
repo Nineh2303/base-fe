@@ -120,15 +120,17 @@ test("remote css cannot override host utilities: shell 'hidden md:flex' stays vi
   // the products stylesheet (with its own `.hidden{display:none}`) is loaded now
   expect(await display(tagline)).toBe('flex')
   await expect(tagline).toBeVisible()
-  // ...and it is @scope'd (cross-origin sheet: cssRules is not readable, so fetch its text)
-  const hrefs = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLLinkElement>('link[rel=stylesheet]')]
+  // ...and it is @scope'd. Preview: a cross-origin <link> (cssRules unreadable, so fetch its text).
+  // Dev: mf-vite's transform output lives in a <style> injected by Vite.
+  const { hrefs, inline } = await page.evaluate(() => ({
+    hrefs: [...document.querySelectorAll<HTMLLinkElement>('link[rel=stylesheet]')]
       .map((l) => l.href)
       .filter((h) => h.startsWith('http://localhost:5002/')),
-  )
-  expect(hrefs.length).toBeGreaterThan(0)
-  const texts = await Promise.all(hrefs.map(async (h) => (await page.request.get(h)).text()))
-  expect(texts.some((t) => t.includes('@scope([data-mf-remote=products]) to ([data-mf-remote])'))).toBe(true)
+    inline: [...document.querySelectorAll('style')].map((s) => s.textContent ?? ''),
+  }))
+  const fetched = await Promise.all(hrefs.map(async (h) => (await page.request.get(h)).text()))
+  const scoped = /@scope\s*\(\[data-mf-remote="?products"?\]\)\s*to\s*\(\[data-mf-remote\]\)/
+  expect([...fetched, ...inline].some((t) => scoped.test(t))).toBe(true)
   await page.setViewportSize({ width: 500, height: 800 })
   await expect(tagline).toBeHidden()
 })

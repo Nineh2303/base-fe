@@ -37,7 +37,7 @@ async function onLogout() {
   <div class="bg-background text-foreground min-h-screen font-sans">
     <header
       v-if="showLayout"
-      class="bg-background flex items-center gap-6 border-b px-6 py-3"
+      class="bg-background flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:gap-x-6 md:px-6"
       data-test="shell-header"
     >
       <RouterLink to="/" class="font-semibold no-underline">MF Playground</RouterLink>

@@ -20,6 +20,7 @@
     "test": "vitest run",
     "lint": "eslint .",
     "e2e": "npm run test -w e2e",
+    "e2e:dev": "npm run test:dev -w e2e",
     "changeset": "changeset",
     "test:coverage": "vitest run --coverage --coverage.provider=v8 --coverage.include=packages/*/src/**"
   },
