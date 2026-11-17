@@ -6,7 +6,8 @@ Monorepo (npm workspaces) gồm framework micro-frontend dựa trên Module Fede
 | --- | --- |
 | `@nineh-fe-base/mf-vite` | `defineHost` / `defineRemote`: cấu hình Vite + federation, shared singleton, sinh `./mf-meta` |
 | `@nineh-fe-base/mf-core` | Runtime: `createMfApp`, remote loader, auth, http client, bus, theme, i18n |
-| `@nineh-fe-base/create-mf` | CLI sinh project host/remote |
+| `@nineh-fe-base/ui` | Component Vue kiểu shadcn-vue (Reka UI + Tailwind v4), dùng chung host/remote, theo token `--mf-*` |
+| `@nineh-fe-base/create-mf` | CLI sinh project host/remote, và `ui add` để eject component |
 | `playground/*` | Ví dụ chạy được: `shell` (host, :5000), `auth-service` (remote, :5001), `products-service` (remote, :5002), `mocks` (MSW), `e2e` (Playwright) |
 
 ## Kiến trúc
@@ -56,7 +57,7 @@ Name hoặc `routePrefix` trùng thì remote đến sau bị bỏ qua (có cản
 
 ### Chính sách version
 
-Tương thích ngược trong một major của `mf-core`. Khi còn `0.x`, tăng minor là breaking: host 0.1.x **từ chối** nạp remote build với 0.2.x (và ngược lại), hiện lỗi rõ ràng. Lệch major cũng bị từ chối. Ba package framework dùng chung version (`fixed` trong changesets).
+Tương thích ngược trong một major của `mf-core`. Khi còn `0.x`, tăng minor là breaking: host 0.1.x **từ chối** nạp remote build với 0.2.x (và ngược lại), hiện lỗi rõ ràng. Lệch major cũng bị từ chối. Bốn package framework dùng chung version (`fixed` trong changesets).
 
 ### Auth
 
@@ -105,6 +106,70 @@ cd <name> && npm install && npm run dev
 
 - `<name>` phải là JS identifier (không có dấu `-`); với host còn phải là tên npm hợp lệ (chữ thường). Tên package npm suy ra dạng kebab-case (`myOrders` -> `my-orders`).
 - `--port` mặc định 5000 (host) / 5010 (remote). Không truyền đủ tham số thì CLI hỏi tương tác (cần TTY).
+- Khi chạy CLI từ chính repo này (trước khi publish), phải build trước: `npm run build -w @nineh-fe-base/create-mf` (`bin` trỏ tới `dist/index.js`).
+- Project sinh ra đã có sẵn Tailwind và `@nineh-fe-base/ui` (xem mục Tailwind & UI).
+
+## Tailwind & UI
+
+Mọi app dùng Tailwind v4 (plugin `@tailwindcss/vite` do `defineHost`/`defineRemote` tự thêm) và bộ component `@nineh-fe-base/ui`. Màu sắc, bo góc, font của component đọc từ token `--mf-*` của `mf-core/theme`, nên `theme.setMode('dark')` đổi giao diện của host và mọi remote cùng lúc.
+
+### File CSS và nơi import
+
+- **Host**: import `@nineh-fe-base/ui/styles/host.css` một lần (trong `src/bootstrap.ts`). Gồm Tailwind đầy đủ (có preflight), ánh xạ token, biến thể `dark`, và `@source` tới `dist` của ui.
+- **Remote**: tạo `src/style.css` chứa `@import '@nineh-fe-base/ui/styles/remote.css';` rồi `import './style.css'` từ module được expose (`routes.ts`), để khi host nạp remote thì CSS của remote nạp theo. `remote.css` giống `host.css` nhưng **không có preflight**.
+- **Chạy standalone**: `bootstrap.ts` của remote import thêm `host.css` để có preflight.
+
+```css
+/* src/style.css của remote */
+@import '@nineh-fe-base/ui/styles/remote.css';
+```
+
+Thứ tự layer cố định, cả hai file đều khai báo `@layer theme, base, components, utilities;` nên thứ tự nạp stylesheet không quan trọng. Dark mode: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`, khớp thuộc tính `data-theme` mà theme đã đặt.
+
+**Lưu ý**: CSS tự viết **không nằm trong layer** luôn thắng utility của Tailwind (vì layer luôn thua CSS không layer). Nếu muốn utility ghi đè được, bọc CSS của bạn trong `@layer components { ... }`.
+
+### 4 lớp tuỳ biến theo từng service
+
+1. **Token theo scope.** Mỗi remote được bọc trong `<div data-mf-remote="<tên>" style="display:contents">`. Override token chỉ trong vùng của service, viết **không layer**:
+
+   ```css
+   [data-mf-remote='orders'] {
+     --mf-color-primary: #16a34a;
+     --mf-color-primary-foreground: #ffffff;
+   }
+   [data-theme='dark'] [data-mf-remote='orders'] { --mf-color-primary: #4ade80; }
+   ```
+
+   Template remote có sẵn ví dụ này (đang comment) trong `src/style.css`; `playground/products-service` dùng primary màu xanh lá.
+2. **Class/props tại chỗ gọi.** `tailwind-merge` cho class của bạn thắng: `<Button class="rounded-full">Lưu</Button>`.
+3. **Mở rộng variant.** Package export mọi định nghĩa `cva` (`buttonVariants`, `badgeVariants`, ...) cùng `cn`:
+
+   ```ts
+   import { buttonVariants, cn } from '@nineh-fe-base/ui'
+
+   export const brandButton = (class_?: string) =>
+     cn(buttonVariants({ variant: 'default' }), 'bg-gradient-to-r from-primary to-accent', class_)
+   ```
+4. **Eject.** Sao chép source component vào project, từ đó service tự sở hữu bản đó:
+
+   ```bash
+   npx @nineh-fe-base/create-mf ui add button dialog            # -> src/components/ui/<tên>/
+   npx @nineh-fe-base/create-mf ui add card --dir src/ui --force # đổi thư mục, cho phép ghi đè
+   ```
+
+   Không có `--force` thì lệnh từ chối ghi đè file đã có; tên không tồn tại thì in danh sách component. Import nội bộ (`lib/utils`, helper) được viết lại thành `@nineh-fe-base/ui`; import tới component anh em được viết lại tương tự, trừ khi component đó cũng được eject cùng lệnh hoặc đã có trong thư mục đích.
+
+### Overlay và portal
+
+Dialog, DropdownMenu, Select, Tooltip dùng portal của Reka UI. `RemoteBoundary` (host) và `createStandaloneRemote` đặt `<div data-mf-portal>` làm con cuối của scope element và cung cấp nó qua `MF_PORTAL_KEY`; component của ui lấy đích qua `usePortalTo()` (rơi về `body` nếu không có). Nhờ đó overlay "teleport" vào **scope của service** và giữ nguyên token override. Component tự viết có thể dùng `useMfPortalTarget()` từ `mf-core`.
+
+### Toast
+
+Chỉ mount **một** `<Toaster />` cho cả app (trong Layout của host); vue-sonner dùng một store toàn cục nên mọi `Toaster` đều hiện mọi `toast()`. Gọi `toast(...)` (export từ `@nineh-fe-base/ui`) ở bất kỳ đâu.
+
+### Tắt Tailwind
+
+`defineHost({ ..., tailwind: false })` / `defineRemote({ ..., tailwind: false })` không thêm plugin Tailwind. Khi `package.json` của project có `@nineh-fe-base/ui`, `mf-vite` tự chia sẻ `@nineh-fe-base/ui` và `reka-ui` như singleton (không cần cấu hình `shared`).
 
 ## Cài từ GitHub Packages
 
@@ -119,7 +184,7 @@ với `NPM_TOKEN` là personal access token (classic) có quyền `read:packages
 
 ## Phát hành
 
-- Ghi thay đổi bằng `npm run changeset`; `.changeset/initial-release.md` là bản phát hành đầu (minor cho cả ba package).
+- Ghi thay đổi bằng `npm run changeset`; `.changeset/initial-release.md` là bản phát hành đầu (minor cho cả ba package đầu tiên); `.changeset/ui-tailwind.md` thêm Tailwind/ui (minor cho bốn package).
 - `.github/workflows/ci.yml`: mọi push/PR chạy lint, test, build, e2e (Node 22).
 - `.github/workflows/release.yml`: push `main` chạy `changesets/action` (tạo PR "Version Packages", sau đó `changeset publish`) lên GitHub Packages với `GITHUB_TOKEN`.
 - Lưu ý: workflow release chỉ publish được khi repo thuộc owner `nineh-fe-base` (scope package phải trùng owner). Trường `repository` trong `package.json` các package dùng tên repo tạm `mf-framework`; cần sửa theo tên repo thật.

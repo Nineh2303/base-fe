@@ -21,4 +21,10 @@ export default defineRemote({
 - Remote tự expose thêm `./mf-meta` (`{ name, coreVersion }`) để host kiểm tra tương thích version.
 - `peerDependencies`: `vite`, `vue`.
 
+
+### Tailwind và ui
+
+- `defineHost`/`defineRemote` tự thêm plugin `@tailwindcss/vite` (Tailwind v4). Đặt `tailwind: false` để tắt.
+- Nếu `package.json` của project (root của Vite, mặc định cwd) có `@nineh-fe-base/ui` trong `dependencies`/`devDependencies`, `@nineh-fe-base/ui` và `reka-ui` tự được thêm vào shared singleton (`reka-ui` lấy `requiredVersion` từ `package.json` của ui). Project không dùng ui thì không đổi gì.
+
 Xem README gốc của repo để biết hợp đồng remote đầy đủ. Repo URL trong `package.json` (`nineh-fe-base/mf-framework`) là giá trị tạm, cần đổi theo repo thật.

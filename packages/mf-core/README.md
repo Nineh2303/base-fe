@@ -35,6 +35,13 @@ Export chính:
 
 Mọi origin khác (kể cả `//host/...` hay `baseURL` ghi đè theo request) không nhận token, và 401 từ đó không kích hoạt refresh/logout.
 
+
+### Theme tokens, scope và portal
+
+- `DEFAULT_TOKENS` có bộ token kiểu shadcn (`color-background`, `color-foreground`, `color-card`, `color-popover`, `color-primary-foreground`, `color-secondary`, `color-muted`, `color-accent`, `color-destructive`, `color-input`, `color-ring`, ... cùng các key cũ `color-bg`, `color-text`, `color-danger`, `color-on-primary`); mỗi cặp alias có cùng giá trị mặc định. Ghi ra `--mf-<key>`.
+- `RemoteBoundary` (và remote standalone) bọc nội dung trong `<div data-mf-remote="<tên remote>" style="display:contents">`; con cuối của nó là `<div data-mf-portal></div>`. Override token cho một service bằng `[data-mf-remote='<tên>'] { --mf-color-primary: ... }`.
+- `MF_PORTAL_KEY` (`Symbol.for('nineh-fe-base/ui-portal')`) là injection key của phần tử portal; `useMfPortalTarget()` trả `ComputedRef<HTMLElement | string>`: phần tử portal khi đã mount, nếu không thì `'body'`. `@nineh-fe-base/ui` dùng nó để overlay nằm trong scope của service.
+
 `peerDependencies`: `vue`, `pinia`, `vue-router`, `vue-i18n`, `@module-federation/runtime`.
 
 Chính sách version: tương thích ngược trong một major; khi còn `0.x`, tăng minor là breaking (host 0.1.x từ chối remote build với 0.2.x). Xem README gốc.
