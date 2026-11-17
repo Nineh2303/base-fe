@@ -44,7 +44,7 @@ describe('ejectComponents', () => {
     const { written } = await ejectComponents({ names: ['button'], cwd, uiRoot })
     expect(written.length).toBe(3)
     const vue = read('src/components/ui/button/Button.vue')
-    expect(vue).toContain("import { cn } from '@nineh-fe-base/ui'")
+    expect(vue).toContain("import { cn } from '@nineh2303/ui'")
     expect(vue).toContain('from "./buttonVariants"')
     expect(read('src/components/ui/button/index.ts')).toContain("'./Button.vue'")
   })
@@ -52,18 +52,18 @@ describe('ejectComponents', () => {
   it('rewrites lib imports with double quotes and keeps same-dir imports', async () => {
     await ejectComponents({ names: ['dialog'], cwd, uiRoot })
     const vue = read('src/components/ui/dialog/Dialog.vue')
-    expect(vue).toContain('import { cn } from \'@nineh-fe-base/ui\'')
-    expect(vue).toContain("import { usePortalTo } from '@nineh-fe-base/ui'")
+    expect(vue).toContain('import { cn } from \'@nineh2303/ui\'')
+    expect(vue).toContain("import { usePortalTo } from '@nineh2303/ui'")
     expect(vue).toContain("from './Content.vue'")
   })
 
   it('rewrites sibling imports when the sibling is not ejected', async () => {
     await ejectComponents({ names: ['dialog'], cwd, uiRoot })
     const vue = read('src/components/ui/dialog/Dialog.vue')
-    expect(vue).toContain("import { Button } from '@nineh-fe-base/ui'")
-    expect(vue).toContain("import { buttonVariants } from '@nineh-fe-base/ui'")
-    expect(vue).toContain("import('@nineh-fe-base/ui')")
-    expect(read('src/components/ui/dialog/index.ts')).toContain("export * from '@nineh-fe-base/ui'")
+    expect(vue).toContain("import { Button } from '@nineh2303/ui'")
+    expect(vue).toContain("import { buttonVariants } from '@nineh2303/ui'")
+    expect(vue).toContain("import('@nineh2303/ui')")
+    expect(read('src/components/ui/dialog/index.ts')).toContain("export * from '@nineh2303/ui'")
   })
 
   it('keeps sibling imports relative when ejected in the same command', async () => {
@@ -72,7 +72,7 @@ describe('ejectComponents', () => {
     expect(vue).toContain("import { Button } from '../button'")
     expect(vue).toContain("from '../button/buttonVariants'")
     expect(vue).toContain("import('../button')")
-    expect(vue).toContain("from '@nineh-fe-base/ui'")
+    expect(vue).toContain("from '@nineh2303/ui'")
   })
 
   it('keeps sibling imports relative when the sibling already exists in the target', async () => {
@@ -91,7 +91,7 @@ describe('ejectComponents', () => {
   it('overwrites with force', async () => {
     put(cwd, 'src/components/ui/button/Button.vue', 'mine')
     await ejectComponents({ names: ['button'], cwd, uiRoot, force: true })
-    expect(read('src/components/ui/button/Button.vue')).toContain('@nineh-fe-base/ui')
+    expect(read('src/components/ui/button/Button.vue')).toContain('@nineh2303/ui')
   })
 
   it('rejects unknown names listing available components, writing nothing', async () => {
@@ -111,8 +111,8 @@ describe('ejectComponents', () => {
   })
 
   it('resolves uiRoot from node_modules walking up from cwd', async () => {
-    put(base, 'node_modules/@nineh-fe-base/ui/package.json', '{}')
-    put(base, 'node_modules/@nineh-fe-base/ui/src/components/button/Button.vue', 'x')
+    put(base, 'node_modules/@nineh2303/ui/package.json', '{}')
+    put(base, 'node_modules/@nineh2303/ui/src/components/button/Button.vue', 'x')
     await ejectComponents({ names: ['button'], cwd })
     expect(read('src/components/ui/button/Button.vue')).toBe('x')
   })
@@ -123,6 +123,6 @@ describe('rewriteImports unknown siblings', () => {
     const { rewriteImports } = await import('../src/eject')
     const out = rewriteImports("import a from '../mystery'\nimport b from '../button'", new Set(), new Set(['button']))
     expect(out).toContain("'../mystery'")
-    expect(out).toContain("import b from '@nineh-fe-base/ui'")
+    expect(out).toContain("import b from '@nineh2303/ui'")
   })
 })

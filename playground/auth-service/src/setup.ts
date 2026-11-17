@@ -1,5 +1,5 @@
-import { registerMessages } from '@nineh-fe-base/mf-core'
-import type { RemoteSetup } from '@nineh-fe-base/mf-core'
+import { registerMessages } from '@nineh2303/mf-core'
+import type { RemoteSetup } from '@nineh2303/mf-core'
 
 const messages = {
   vi: {

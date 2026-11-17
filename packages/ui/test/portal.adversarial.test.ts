@@ -4,7 +4,7 @@ import type { Component } from 'vue'
 import { existsSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
-import { RemoteBoundary } from '@nineh-fe-base/mf-core'
+import { RemoteBoundary } from '@nineh2303/mf-core'
 import * as ui from '../src'
 import {
   Dialog, DialogContent, DialogDescription, DialogTitle,

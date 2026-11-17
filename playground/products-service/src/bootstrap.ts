@@ -1,6 +1,6 @@
-import { createStandaloneRemote } from '@nineh-fe-base/mf-core'
+import { createStandaloneRemote } from '@nineh2303/mf-core'
 import { startMocks } from '@playground/mocks'
-import '@nineh-fe-base/ui/styles/host.css'
+import '@nineh2303/ui/styles/host.css'
 import routes from './routes'
 
 await startMocks()

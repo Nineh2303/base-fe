@@ -23,7 +23,7 @@ beforeEach(() => {
     uiRoot,
     'package.json',
     JSON.stringify({
-      name: '@nineh-fe-base/ui',
+      name: '@nineh2303/ui',
       version: '0.1.0',
       dependencies: { 'reka-ui': '^2.11.0', 'lucide-vue-next': '^1.0.0', 'vue-sonner': '^2.0.9' },
       peerDependencies: { vue: '^3.5.0' },
@@ -74,18 +74,18 @@ describe('ejectComponents: missing dependency warning', () => {
     writeFileSync(join(cwd, 'package.json'), JSON.stringify({ dependencies: { vue: '^3.5.0' } }))
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { missingDependencies } = await ejectComponents({ names: ['select'], cwd, uiRoot })
-    // the rewritten '../../lib/utils' import becomes '@nineh-fe-base/ui', also undeclared here
-    expect(missingDependencies).toEqual(['@nineh-fe-base/ui', 'lucide-vue-next', 'reka-ui'])
+    // the rewritten '../../lib/utils' import becomes '@nineh2303/ui', also undeclared here
+    expect(missingDependencies).toEqual(['@nineh2303/ui', 'lucide-vue-next', 'reka-ui'])
     const out = warn.mock.calls.map((c) => String(c[0])).join('\n')
-    expect(out).toContain('@nineh-fe-base/ui, lucide-vue-next, reka-ui')
-    expect(out).toContain('npm install "@nineh-fe-base/ui@^0.1.0" "lucide-vue-next@^1.0.0" "reka-ui@^2.11.0"')
+    expect(out).toContain('@nineh2303/ui, lucide-vue-next, reka-ui')
+    expect(out).toContain('npm install "@nineh2303/ui@^0.1.0" "lucide-vue-next@^1.0.0" "reka-ui@^2.11.0"')
   })
 
   it('counts devDependencies as declared and warns about nothing when all are present', async () => {
     writeFileSync(
       join(cwd, 'package.json'),
       JSON.stringify({
-        dependencies: { vue: '^3.5.0', '@nineh-fe-base/ui': '^0.1.0' },
+        dependencies: { vue: '^3.5.0', '@nineh2303/ui': '^0.1.0' },
         devDependencies: { 'reka-ui': '^2.11.0', 'lucide-vue-next': '^1.0.0' },
       }),
     )
@@ -100,7 +100,7 @@ describe('ejectComponents: missing dependency warning', () => {
     writeFileSync(
       join(cwd, 'package.json'),
       JSON.stringify({
-        dependencies: { vue: '^3.5.0', '@nineh-fe-base/ui': '^0.1.0', 'reka-ui': '^2', 'lucide-vue-next': '^1' },
+        dependencies: { vue: '^3.5.0', '@nineh2303/ui': '^0.1.0', 'reka-ui': '^2', 'lucide-vue-next': '^1' },
       }),
     )
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

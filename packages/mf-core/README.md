@@ -1,4 +1,4 @@
-# @nineh-fe-base/mf-core
+# @nineh2303/mf-core
 
 Runtime lõi cho host/remote: singleton được chia sẻ giữa mọi app qua Module Federation.
 
@@ -39,9 +39,9 @@ Mọi origin khác (kể cả `//host/...` hay `baseURL` ghi đè theo request) 
 
 - `DEFAULT_TOKENS` có bộ token kiểu shadcn (`color-background`, `color-foreground`, `color-card`, `color-popover`, `color-primary-foreground`, `color-secondary`, `color-muted`, `color-accent`, `color-destructive`, `color-input`, `color-ring`, ... cùng các key cũ `color-bg`, `color-text`, `color-danger`, `color-on-primary`); mỗi cặp alias có cùng giá trị mặc định. Ghi ra `--mf-<key>`.
 - `RemoteBoundary` (và remote standalone) bọc nội dung trong `<div data-mf-remote="<tên remote>" style="display:contents">`; con cuối của nó là `<div data-mf-portal></div>`. Override token cho một service bằng `[data-mf-remote='<tên>'] { --mf-color-primary: ... }`. Prop `scope` của `RemoteBoundary` ghi đè giá trị `data-mf-remote` (mặc định là `name`); loader route đặt nó bằng tên remote trong manifest, và `defineRemoteComponent('<remote>/<expose>')` đặt nó bằng tên remote, nên widget nhận token và CSS `@scope` của remote đó.
-- `MF_PORTAL_KEY` (`Symbol.for('nineh-fe-base/ui-portal')`) là injection key của phần tử portal; `useMfPortalTarget()` trả `ComputedRef<HTMLElement | string>`: phần tử portal khi đã mount, nếu không thì `'body'`. `@nineh-fe-base/ui` dùng nó để overlay nằm trong scope của service.
+- `MF_PORTAL_KEY` (`Symbol.for('nineh2303/ui-portal')`) là injection key của phần tử portal; `useMfPortalTarget()` trả `ComputedRef<HTMLElement | string>`: phần tử portal khi đã mount, nếu không thì `'body'`. `@nineh2303/ui` dùng nó để overlay nằm trong scope của service.
 
 `peerDependencies`: `vue`, `pinia`, `vue-router`, `vue-i18n`, `@module-federation/runtime`.
 
 Chính sách version: tương thích ngược trong một major; khi còn `0.x`, tăng minor là breaking (host 0.1.x từ chối remote build với 0.2.x). Xem README gốc.
-Repo URL trong `package.json` (`nineh-fe-base/mf-framework`) là giá trị tạm.
+Repo: https://github.com/Nineh2303/base-fe.

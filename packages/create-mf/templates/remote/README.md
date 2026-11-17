@@ -1,6 +1,6 @@
 # %%name%%
 
-Remote micro-frontend built on `@nineh-fe-base/mf-core` and `@nineh-fe-base/mf-vite`.
+Remote micro-frontend built on `@nineh2303/mf-core` and `@nineh2303/mf-vite`.
 
 ```bash
 npm install
@@ -21,4 +21,4 @@ Routes are exposed as `./routes` (see `vite.config.ts`). To plug it into a host,
 
 ## Tailwind and UI
 
-Tailwind v4 is enabled by `@nineh-fe-base/mf-vite`; components come from `@nineh-fe-base/ui`. `src/style.css` (imported by `src/routes.ts`) pulls in `remote.css` and holds a commented example of a scoped theme: override `--mf-*` tokens under `[data-mf-remote="%%name%%"]` to restyle only this remote, including its dialogs and dropdowns. Standalone mode (`src/bootstrap.ts`) also imports `host.css` for the preflight. Eject a component to own its source with `npx @nineh-fe-base/create-mf ui add <component>`.
+Tailwind v4 is enabled by `@nineh2303/mf-vite`; components come from `@nineh2303/ui`. `src/style.css` (imported by `src/routes.ts`) pulls in `remote.css` and holds a commented example of a scoped theme: override `--mf-*` tokens under `[data-mf-remote="%%name%%"]` to restyle only this remote, including its dialogs and dropdowns. Standalone mode (`src/bootstrap.ts`) also imports `host.css` for the preflight. Eject a component to own its source with `npx @nineh2303/create-mf ui add <component>`.

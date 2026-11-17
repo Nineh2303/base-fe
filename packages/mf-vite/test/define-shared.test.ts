@@ -31,8 +31,8 @@ function project(
 ): string {
   const root = mkdtempSync(join(tmpdir(), 'mfv-shared-'))
   writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', ...pkg }))
-  writeInstalled(root, '@nineh-fe-base/mf-core', { version: '0.3.0' })
-  if (ui) writeInstalled(root, '@nineh-fe-base/ui', { version: '0.1.0', dependencies: { 'reka-ui': '^2.11.0' }, ...ui })
+  writeInstalled(root, '@nineh2303/mf-core', { version: '0.3.0' })
+  if (ui) writeInstalled(root, '@nineh2303/ui', { version: '0.1.0', dependencies: { 'reka-ui': '^2.11.0' }, ...ui })
   return root
 }
 
@@ -55,32 +55,32 @@ describe('define: resolved shared config and tailwind', () => {
   }
 
   test.each(['dependencies', 'devDependencies'])('ui in %s -> ui and reka-ui singletons', async (field) => {
-    const { shared } = await host({ [field]: { '@nineh-fe-base/ui': '^0.1.0' } }, {})
-    expect(shared['@nineh-fe-base/ui']).toEqual({ singleton: true, requiredVersion: '^0.1.0' })
+    const { shared } = await host({ [field]: { '@nineh2303/ui': '^0.1.0' } }, {})
+    expect(shared['@nineh2303/ui']).toEqual({ singleton: true, requiredVersion: '^0.1.0' })
     expect(shared['reka-ui']).toEqual({ singleton: true, requiredVersion: '^2.11.0' })
   })
 
   test('ui only in peerDependencies -> not shared', async () => {
-    const { shared } = await host({ peerDependencies: { '@nineh-fe-base/ui': '^0.1.0' } }, {})
-    expect(shared['@nineh-fe-base/ui']).toBeUndefined()
+    const { shared } = await host({ peerDependencies: { '@nineh2303/ui': '^0.1.0' } }, {})
+    expect(shared['@nineh2303/ui']).toBeUndefined()
     expect(shared['reka-ui']).toBeUndefined()
   })
 
   test('ui listed but not installed -> error naming the package', async () => {
-    const root = project({ dependencies: { '@nineh-fe-base/ui': '^0.1.0' } }, false)
+    const root = project({ dependencies: { '@nineh2303/ui': '^0.1.0' } }, false)
     dirs.push(root)
     process.chdir(root)
-    await expect((defineHost({ name: 'shell' }) as any)(env)).rejects.toThrow(/@nineh-fe-base\/ui/)
+    await expect((defineHost({ name: 'shell' }) as any)(env)).rejects.toThrow(/@nineh2303\/ui/)
   })
 
   test.each(['*', 'file:../ui', 'workspace:*'])('local spec %s -> ^0.1.0', async (spec) => {
-    const { shared } = await host({ dependencies: { '@nineh-fe-base/ui': spec } }, { version: '0.1.0' })
-    expect(shared['@nineh-fe-base/ui'].requiredVersion).toBe('^0.1.0')
+    const { shared } = await host({ dependencies: { '@nineh2303/ui': spec } }, { version: '0.1.0' })
+    expect(shared['@nineh2303/ui'].requiredVersion).toBe('^0.1.0')
   })
 
   test('reka-ui requiredVersion follows the installed ui package.json', async () => {
     const { shared } = await host(
-      { dependencies: { '@nineh-fe-base/ui': '^0.1.0' } },
+      { dependencies: { '@nineh2303/ui': '^0.1.0' } },
       { dependencies: { 'reka-ui': '~2.9.3' } },
     )
     expect(shared['reka-ui'].requiredVersion).toBe('~2.9.3')
@@ -89,21 +89,21 @@ describe('define: resolved shared config and tailwind', () => {
   test('user override cannot drop singleton for ui, reka-ui or core five', async () => {
     const off = { singleton: false }
     const { shared } = await host(
-      { dependencies: { '@nineh-fe-base/ui': '^0.1.0' } },
+      { dependencies: { '@nineh2303/ui': '^0.1.0' } },
       {},
       {
         shared: {
-          '@nineh-fe-base/ui': off,
+          '@nineh2303/ui': off,
           'reka-ui': off,
           vue: off,
           pinia: off,
           'vue-router': off,
           'vue-i18n': off,
-          '@nineh-fe-base/mf-core': off,
+          '@nineh2303/mf-core': off,
         },
       },
     )
-    for (const n of ['@nineh-fe-base/ui', 'reka-ui', 'vue', 'pinia', 'vue-router', 'vue-i18n', '@nineh-fe-base/mf-core']) {
+    for (const n of ['@nineh2303/ui', 'reka-ui', 'vue', 'pinia', 'vue-router', 'vue-i18n', '@nineh2303/mf-core']) {
       expect(shared[n].singleton, n).toBe(true)
     }
   })

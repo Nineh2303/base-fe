@@ -100,12 +100,12 @@ cli('create-mf CLI (built dist/index.js)', () => {
   it('"ui add" routes to eject: fails clearly when ui is not installed', () => {
     const r = run('ui', 'add', 'button')
     expect(r.code).toBe(1)
-    expect(r.err).toContain('Cannot find @nineh-fe-base/ui')
+    expect(r.err).toContain('Cannot find @nineh2303/ui')
     expect(existsSync(join(cwd, 'src'))).toBe(false)
   })
 
   it('"ui add" ejects an installed component, lists written files, and errors on unknown names', () => {
-    const uiDir = join(cwd, 'node_modules', '@nineh-fe-base', 'ui')
+    const uiDir = join(cwd, 'node_modules', '@nineh2303', 'ui')
     const comp = join(uiDir, 'src', 'components', 'badge')
     mkdirSync(comp, { recursive: true })
     writeFileSync(join(uiDir, 'package.json'), '{"version":"1.0.0"}')

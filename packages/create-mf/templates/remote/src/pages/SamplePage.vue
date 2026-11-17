@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { useAuth } from '@nineh-fe-base/mf-core'
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nineh-fe-base/ui'
+import { useAuth } from '@nineh2303/mf-core'
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nineh2303/ui'
 import { useSampleStore } from '../stores/sample'
 
 const store = useSampleStore()

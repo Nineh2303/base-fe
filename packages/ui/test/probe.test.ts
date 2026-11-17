@@ -74,7 +74,7 @@ describe.skipIf(!hasDist)('package exports (dist)', () => {
     }
   })
   it('styles subpath resolves', () => {
-    const p = import.meta.resolve?.('@nineh-fe-base/ui/styles/host.css')
+    const p = import.meta.resolve?.('@nineh2303/ui/styles/host.css')
     expect(p ?? '').toMatch(/styles\/host\.css$/)
   })
 })

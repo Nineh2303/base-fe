@@ -17,7 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@nineh-fe-base/ui'
+} from '@nineh2303/ui'
 import { useProductListStore } from '../stores/list'
 
 const store = useProductListStore()

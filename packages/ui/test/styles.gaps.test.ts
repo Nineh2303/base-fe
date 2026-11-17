@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { compile } from '@tailwindcss/node'
-import { DEFAULT_TOKENS } from '@nineh-fe-base/mf-core'
+import { DEFAULT_TOKENS } from '@nineh2303/mf-core'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '../../..')
@@ -53,7 +53,7 @@ function walk(dir: string): string[] {
 
 describe('classes used in src compile against the token theme', () => {
   it('every themed colour / radius / font utility in src/**/*.vue generates a rule (no typos, unknown tokens)', async () => {
-    const compiler = await compile(`@import '@nineh-fe-base/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
+    const compiler = await compile(`@import '@nineh2303/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
     const baseline = compiler.build([]).length
     const used = new Set<string>()
     for (const f of walk(resolve(here, '../src')).filter((p) => p.endsWith('.vue') || p.endsWith('.ts'))) {
@@ -72,7 +72,7 @@ describe('classes used in src compile against the token theme', () => {
   })
 
   it('tw-animate classes used by overlay components are generated (animate/fade/zoom, in and out)', async () => {
-    const compiler = await compile(`@import '@nineh-fe-base/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
+    const compiler = await compile(`@import '@nineh2303/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
     const classes = [
       'data-[state=open]:animate-in', 'data-[state=closed]:animate-out',
       'data-[state=open]:fade-in-0', 'data-[state=closed]:fade-out-0',
@@ -87,7 +87,7 @@ describe('classes used in src compile against the token theme', () => {
   })
 
   it('remote.css compiled output has no preflight/reset rules and keeps the layer order first', async () => {
-    const compiler = await compile(`@import '@nineh-fe-base/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
+    const compiler = await compile(`@import '@nineh2303/ui/styles/remote.css';`, { base: repoRoot, onDependency: () => {} })
     const css = compiler.build(['p-4', 'flex'])
     expect(css).not.toMatch(/box-sizing:\s*border-box/)
     expect(css).not.toMatch(/\bbutton,\s*input|::file-selector-button|-webkit-text-size-adjust/)

@@ -10,7 +10,7 @@ export default defineConfig({
       external: [
         /^vue($|\/)/,
         /^reka-ui($|\/)/,
-        /^@nineh-fe-base\/mf-core/,
+        /^@nineh2303\/mf-core/,
         'class-variance-authority',
         'clsx',
         'tailwind-merge',

@@ -24,7 +24,7 @@ describe('templates with odd names', () => {
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
     expect(pkg.name).toBe(toPackageName(name))
     expect(pkg.name).toMatch(/^[a-z0-9-~][a-z0-9-._~]*$/)
-    expect(pkg.dependencies['@nineh-fe-base/mf-core']).toBe('^9.8.7')
+    expect(pkg.dependencies['@nineh2303/mf-core']).toBe('^9.8.7')
     expect(readFileSync(join(dir, 'vite.config.ts'), 'utf8')).toContain(`name: '${name}'`)
     expect(readFileSync(join(dir, 'vite.config.ts'), 'utf8')).toContain('port: 5123')
     expect(readFileSync(join(dir, 'src/bootstrap.ts'), 'utf8')).toContain(`name: '${name}'`)

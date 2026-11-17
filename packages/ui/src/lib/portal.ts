@@ -1,5 +1,5 @@
 import type { ComputedRef } from 'vue'
-import { useMfPortalTarget } from '@nineh-fe-base/mf-core'
+import { useMfPortalTarget } from '@nineh2303/mf-core'
 
 /**
  * Teleport target for overlays: the enclosing remote's `[data-mf-portal]` element once mounted, else 'body'.

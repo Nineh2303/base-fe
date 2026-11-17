@@ -3,8 +3,8 @@ export type SharedConfig = Record<
   { singleton?: boolean; requiredVersion?: string; eager?: boolean }
 >
 
-export const CORE_PACKAGE = '@nineh-fe-base/mf-core'
-export const UI_PACKAGE = '@nineh-fe-base/ui'
+export const CORE_PACKAGE = '@nineh2303/mf-core'
+export const UI_PACKAGE = '@nineh2303/ui'
 export const REKA_PACKAGE = 'reka-ui'
 
 export const DEFAULT_SHARED_NAMES = [
@@ -28,7 +28,7 @@ function isLocalSpec(spec: string): boolean {
 /**
  * Build the shared config: the 5 mandatory singletons plus project extras.
  * Extras are merged per key; the 5 defaults always keep `singleton: true`.
- * For `@nineh-fe-base/mf-core`, local specs (`*`, `workspace:*`, `link:`, `file:`) map to `^<coreVersion>`.
+ * For `@nineh2303/mf-core`, local specs (`*`, `workspace:*`, `link:`, `file:`) map to `^<coreVersion>`.
  */
 export function buildShared(
   versions: Record<string, string>,

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, h, nextTick } from 'vue'
 import type { Component } from 'vue'
-import { RemoteBoundary } from '@nineh-fe-base/mf-core'
+import { RemoteBoundary } from '@nineh2303/mf-core'
 import {
   Dialog, DialogContent, DialogDescription, DialogTitle,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,

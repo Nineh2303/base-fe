@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth, useMfContext, useMfLayout, useTheme } from '@nineh-fe-base/mf-core'
+import { useAuth, useMfContext, useMfLayout, useTheme } from '@nineh2303/mf-core'
 import {
   Button,
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Toaster,
-} from '@nineh-fe-base/ui'
+} from '@nineh2303/ui'
 
 const { remotes } = useMfContext()
 const { user, isAuthenticated, logout } = useAuth()

@@ -4,7 +4,7 @@ import { dirname, join, resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ejectComponents, rewriteImports } from '../src/eject'
 
-const UI = "'@nineh-fe-base/ui'"
+const UI = "'@nineh2303/ui'"
 const none = new Set<string>()
 
 describe('rewriteImports adversarial', () => {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuth } from '@nineh-fe-base/mf-core'
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@nineh-fe-base/ui'
+import { useAuth } from '@nineh2303/mf-core'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@nineh2303/ui'
 
 const { login } = useAuth()
 const route = useRoute()

@@ -48,7 +48,7 @@ describe('portal', () => {
     expect(target.value).toBe(portal)
   })
 
-  it('MF_PORTAL_KEY is Symbol.for(nineh-fe-base/ui-portal)', () => {
-    expect(MF_PORTAL_KEY).toBe(Symbol.for('nineh-fe-base/ui-portal'))
+  it('MF_PORTAL_KEY is Symbol.for(nineh2303/ui-portal)', () => {
+    expect(MF_PORTAL_KEY).toBe(Symbol.for('nineh2303/ui-portal'))
   })
 })

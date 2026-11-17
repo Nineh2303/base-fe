@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, RouterView } from 'vue-router'
 
-// Smoke test of the BUILT bundle (run `npm run build -w @nineh-fe-base/mf-core` first). Skipped when dist is absent.
+// Smoke test of the BUILT bundle (run `npm run build -w @nineh2303/mf-core` first). Skipped when dist is absent.
 const distPath = pathToFileURL(resolve(__dirname, '../dist/index.js'))
 const built = existsSync(distPath)
 

@@ -1,6 +1,6 @@
-import { createMfApp, jwtAdapter } from '@nineh-fe-base/mf-core'
+import { createMfApp, jwtAdapter } from '@nineh2303/mf-core'
 import { startMocks } from '@playground/mocks'
-import '@nineh-fe-base/ui/styles/host.css'
+import '@nineh2303/ui/styles/host.css'
 import Layout from './Layout.vue'
 import Home from './pages/Home.vue'
 import Forbidden from './pages/Forbidden.vue'

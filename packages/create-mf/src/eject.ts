@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, parse, resolve } from 'node:path'
 
-const UI_PACKAGE = '@nineh-fe-base/ui'
+const UI_PACKAGE = '@nineh2303/ui'
 const DEFAULT_DIR = 'src/components/ui'
 
 export interface EjectOptions {

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { useMfContext } from '@nineh-fe-base/mf-core'
+import { useMfContext } from '@nineh2303/mf-core'
 
 export interface Product {
   id: number

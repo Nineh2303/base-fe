@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "@module-federation/runtime": "%%moduleFederationRuntimeVersion%%",
-    "@nineh-fe-base/mf-core": "^%%frameworkVersion%%",
-    "@nineh-fe-base/ui": "^%%frameworkVersion%%",
+    "@nineh2303/mf-core": "^%%frameworkVersion%%",
+    "@nineh2303/ui": "^%%frameworkVersion%%",
     "pinia": "%%piniaVersion%%",
     "vue": "%%vueVersion%%",
     "vue-i18n": "%%vueI18nVersion%%",
     "vue-router": "%%vueRouterVersion%%"
   },
   "devDependencies": {
-    "@nineh-fe-base/mf-vite": "^%%frameworkVersion%%",
+    "@nineh2303/mf-vite": "^%%frameworkVersion%%",
     "tailwindcss": "%%tailwindVersion%%",
     "typescript": "%%typescriptVersion%%",
     "vite": "%%viteVersion%%",

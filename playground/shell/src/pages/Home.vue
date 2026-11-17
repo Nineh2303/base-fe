@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useAuth } from '@nineh-fe-base/mf-core'
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@nineh-fe-base/ui'
+import { useAuth } from '@nineh2303/mf-core'
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@nineh2303/ui'
 
 const { user, isAuthenticated } = useAuth()
 </script>

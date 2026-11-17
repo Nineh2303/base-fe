@@ -1,6 +1,6 @@
-import { createStandaloneRemote } from '@nineh-fe-base/mf-core'
+import { createStandaloneRemote } from '@nineh2303/mf-core'
 // Standalone only: in a host, the host's own host.css is used. remote.css (via routes.ts) skips preflight.
-import '@nineh-fe-base/ui/styles/host.css'
+import '@nineh2303/ui/styles/host.css'
 import routes from './routes'
 
 // Standalone mode (`npm run dev`): mock auth by default (auto-login).

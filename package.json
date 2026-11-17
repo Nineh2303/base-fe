@@ -1,5 +1,5 @@
 {
-  "name": "nineh-fe-base",
+  "name": "base-fe",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build:framework": "npm run build -w @nineh-fe-base/mf-vite -w @nineh-fe-base/mf-core && npm run build -w @nineh-fe-base/ui",
+    "build:framework": "npm run build -w @nineh2303/mf-vite -w @nineh2303/mf-core && npm run build -w @nineh2303/ui",
     "predev": "npm run build:framework",
     "prepreview": "npm run build:framework",
     "dev": "concurrently -k -n shell,auth,products -c blue,green,magenta \"npm run dev -w shell\" \"npm run dev -w auth-service\" \"npm run dev -w products-service\"",

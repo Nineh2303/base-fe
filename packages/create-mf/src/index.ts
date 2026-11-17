@@ -7,7 +7,7 @@ import { generate, readFrameworkVersion, validateName, validatePort } from './ge
 const USAGE = `Usage: create-mf <name> --kind <host|remote> [--port <number>]
        create-mf ui add <component...> [--dir <path>] [--force]
 
-  npm create @nineh-fe-base/mf <name> -- --kind remote --port 5010
+  npm create @nineh2303/mf <name> -- --kind remote --port 5010
 
 Options:
   --kind <host|remote>  Project kind
@@ -16,7 +16,7 @@ Options:
   --force               (ui add) Overwrite existing files
   -h, --help            Show this help
 
-ui add copies component source from @nineh-fe-base/ui into your project.
+ui add copies component source from @nineh2303/ui into your project.
 Only "create-mf ui add ..." runs the eject command; "create-mf ui" alone
 scaffolds a project named "ui".`
 

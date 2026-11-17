@@ -26,7 +26,7 @@ export interface FederationContext {
   root: string
   versions: Record<string, string>
   coreVersion: string
-  /** Present when @nineh-fe-base/ui is a dependency/devDependency and installed. */
+  /** Present when @nineh2303/ui is a dependency/devDependency and installed. */
   ui?: { version: string; rekaRange: string }
 }
 

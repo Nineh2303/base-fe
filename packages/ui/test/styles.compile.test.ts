@@ -9,9 +9,9 @@ const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, '../../..')
 const hasDist = existsSync(resolve(here, '../dist/index.js'))
 
-// Compile as a consumer would: resolve through node_modules/@nineh-fe-base/ui (workspace symlink).
+// Compile as a consumer would: resolve through node_modules/@nineh2303/ui (workspace symlink).
 async function build(entry: 'host' | 'remote', extra: string[] = []) {
-  const compiler = await compile(`@import '@nineh-fe-base/ui/styles/${entry}.css';`, {
+  const compiler = await compile(`@import '@nineh2303/ui/styles/${entry}.css';`, {
     base: repoRoot,
     onDependency: () => {},
   })

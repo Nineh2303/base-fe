@@ -1,7 +1,7 @@
 import { defineComponent, h } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
-import { createMockAuthAdapter, createStandaloneRemote, useAuth } from '@nineh-fe-base/mf-core'
-import '@nineh-fe-base/ui/styles/host.css'
+import { createMockAuthAdapter, createStandaloneRemote, useAuth } from '@nineh2303/mf-core'
+import '@nineh2303/ui/styles/host.css'
 import routes from './routes'
 import setup from './setup'
 

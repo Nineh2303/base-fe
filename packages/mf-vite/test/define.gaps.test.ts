@@ -19,7 +19,7 @@ beforeEach(() => {
   cwd = process.cwd()
   root = mkdtempSync(join(tmpdir(), 'mfv-gaps-'))
   writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0' } }))
-  install(root, '@nineh-fe-base/mf-core', { version: '2.3.4' })
+  install(root, '@nineh2303/mf-core', { version: '2.3.4' })
   process.chdir(root)
 })
 afterEach(() => {
@@ -111,7 +111,7 @@ describe('mf-meta generation', () => {
     await remote({ name: 'myOrders' })
     const file = join(root, 'node_modules', '.nineh-mf', 'mf-meta.js')
     expect(readFileSync(file, 'utf8')).toBe('export default {"name":"myOrders","coreVersion":"2.3.4"}')
-    install(root, '@nineh-fe-base/mf-core', { version: '2.4.0' })
+    install(root, '@nineh2303/mf-core', { version: '2.4.0' })
     await remote({ name: 'other' })
     expect(readFileSync(file, 'utf8')).toBe('export default {"name":"other","coreVersion":"2.4.0"}')
   })
@@ -130,30 +130,30 @@ describe('mf-meta generation', () => {
 describe('ui detection', () => {
   const withUi = (deps: Record<string, string>, field: 'dependencies' | 'devDependencies' | 'peerDependencies') => {
     writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', [field]: { vue: '^3.5.0', ...deps } }))
-    install(root, '@nineh-fe-base/ui', { version: '1.2.0', dependencies: { 'reka-ui': '^2.11.0' } })
+    install(root, '@nineh2303/ui', { version: '1.2.0', dependencies: { 'reka-ui': '^2.11.0' } })
   }
 
   test('ui in devDependencies is detected (host and remote)', async () => {
-    withUi({ '@nineh-fe-base/ui': '^1.0.0' }, 'devDependencies')
+    withUi({ '@nineh2303/ui': '^1.0.0' }, 'devDependencies')
     await expect(remote()).resolves.toBeTruthy()
     await expect(host()).resolves.toBeTruthy()
   })
 
   test('ui only as a peer dependency is not shared and its install is not required', async () => {
-    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', peerDependencies: { '@nineh-fe-base/ui': '*' } }))
+    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', peerDependencies: { '@nineh2303/ui': '*' } }))
     await expect(remote()).resolves.toBeTruthy()
   })
 
   test('ui listed but not installed names the package in the error', async () => {
-    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', dependencies: { '@nineh-fe-base/ui': '^1.0.0' } }))
-    await expect(host()).rejects.toThrow(/@nineh-fe-base\/ui/)
+    writeFileSync(join(root, 'package.json'), JSON.stringify({ name: 'p', dependencies: { '@nineh2303/ui': '^1.0.0' } }))
+    await expect(host()).rejects.toThrow(/@nineh2303\/ui/)
   })
 
   test('workspace-hoisted ui (installed in a parent node_modules) is found', async () => {
     const child = join(root, 'packages', 'app')
     mkdirSync(child, { recursive: true })
-    writeFileSync(join(child, 'package.json'), JSON.stringify({ name: 'app', dependencies: { '@nineh-fe-base/ui': '*' } }))
-    install(root, '@nineh-fe-base/ui', { version: '3.1.0', dependencies: { 'reka-ui': '^2.9.0' } })
+    writeFileSync(join(child, 'package.json'), JSON.stringify({ name: 'app', dependencies: { '@nineh2303/ui': '*' } }))
+    install(root, '@nineh2303/ui', { version: '3.1.0', dependencies: { 'reka-ui': '^2.9.0' } })
     process.chdir(child)
     await expect(remote()).resolves.toBeTruthy()
   })

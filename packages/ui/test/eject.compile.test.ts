@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import * as ui from '../src/index'
 // Ejected copies import the shared package; resolve it to src for this file only.
-vi.mock('@nineh-fe-base/ui', () => import('../src/index'))
+vi.mock('@nineh2303/ui', () => import('../src/index'))
 import { ejectComponents } from '../../create-mf/src/eject'
 
 const root = resolve(__dirname, '..')
@@ -46,7 +46,7 @@ describe('ejected components (all)', () => {
         const spec = m[2]
         expect(spec.startsWith('../'), `${file}: ${spec}`).toBe(false)
       }
-      for (const m of src.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"]@nineh-fe-base\/ui['"]/g)) {
+      for (const m of src.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"]@nineh2303\/ui['"]/g)) {
         const isType = /import\s+type/.test(m[0])
         if (isType) continue
         for (const raw of m[1].split(',')) {

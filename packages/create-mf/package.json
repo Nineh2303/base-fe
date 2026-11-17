@@ -1,5 +1,5 @@
 {
-  "name": "@nineh-fe-base/create-mf",
+  "name": "@nineh2303/create-mf",
   "version": "0.1.0",
   "type": "module",
   "description": "Scaffold host and remote projects for the nineh Vue micro-frontend framework",
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nineh-fe-base/mf-framework.git",
+    "url": "git+https://github.com/Nineh2303/base-fe.git",
     "directory": "packages/create-mf"
   }
 }

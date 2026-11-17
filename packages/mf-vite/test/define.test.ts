@@ -19,7 +19,7 @@ function makeProject(
     JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0', pinia: '^3.0.0' }, ...pkgExtra }),
   )
   if (withUi) {
-    const dir = join(root, 'node_modules', '@nineh-fe-base', 'ui')
+    const dir = join(root, 'node_modules', '@nineh2303', 'ui')
     mkdirSync(dir, { recursive: true })
     writeFileSync(
       join(dir, 'package.json'),
@@ -27,7 +27,7 @@ function makeProject(
     )
   }
   if (withCore) {
-    const dir = join(root, 'node_modules', '@nineh-fe-base', 'mf-core')
+    const dir = join(root, 'node_modules', '@nineh2303', 'mf-core')
     mkdirSync(dir, { recursive: true })
     writeFileSync(join(dir, 'package.json'), JSON.stringify({ version: '0.1.0' }))
   }
@@ -112,7 +112,7 @@ describe('defineHost/defineRemote', () => {
     const root = makeProject(fixturesRoot, true, {}, true)
     created.push(root)
     process.chdir(root)
-    const hostCss = join(root, 'node_modules', '@nineh-fe-base', 'ui', 'styles', 'host.css')
+    const hostCss = join(root, 'node_modules', '@nineh2303', 'ui', 'styles', 'host.css')
     mkdirSync(join(hostCss, '..'), { recursive: true })
     writeFileSync(hostCss, '')
     const cfg: any = await (defineRemote({ name: 'products', exposes: {} }) as any)(env)

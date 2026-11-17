@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button } from '@nineh-fe-base/ui'
+import { Button } from '@nineh2303/ui'
 </script>
 
 <template>

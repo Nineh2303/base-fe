@@ -1,4 +1,4 @@
-import { defineRemote } from '@nineh-fe-base/mf-vite'
+import { defineRemote } from '@nineh2303/mf-vite'
 
 export default defineRemote({
   name: '%%name%%',

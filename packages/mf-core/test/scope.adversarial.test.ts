@@ -176,7 +176,7 @@ describe('built dist exports', () => {
   it.skipIf(!existsSync(distEntry))('exports MF_PORTAL_KEY and useMfPortalTarget (skipped without dist)', async () => {
     const url = pathToFileURL(distEntry)
     const dist = await import(/* @vite-ignore */ url.href)
-    expect(dist.MF_PORTAL_KEY).toBe(Symbol.for('nineh-fe-base/ui-portal'))
+    expect(dist.MF_PORTAL_KEY).toBe(Symbol.for('nineh2303/ui-portal'))
     expect(typeof dist.useMfPortalTarget).toBe('function')
   })
 })

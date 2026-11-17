@@ -1,4 +1,4 @@
-@import '@nineh-fe-base/ui/styles/remote.css';
+@import '@nineh2303/ui/styles/remote.css';
 
 /* Per-service theme: unlayered so it wins over the shared defaults. */
 [data-mf-remote='products'] {

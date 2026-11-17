@@ -1,5 +1,5 @@
-import { createMfApp, jwtAdapter } from '@nineh-fe-base/mf-core'
-import '@nineh-fe-base/ui/styles/host.css'
+import { createMfApp, jwtAdapter } from '@nineh2303/mf-core'
+import '@nineh2303/ui/styles/host.css'
 import Layout from './Layout.vue'
 import Home from './pages/Home.vue'
 import Forbidden from './pages/Forbidden.vue'
