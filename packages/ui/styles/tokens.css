@@ -1,0 +1,30 @@
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme inline {
+  --color-background: var(--mf-color-background);
+  --color-foreground: var(--mf-color-foreground);
+  --color-card: var(--mf-color-card);
+  --color-card-foreground: var(--mf-color-card-foreground);
+  --color-popover: var(--mf-color-popover);
+  --color-popover-foreground: var(--mf-color-popover-foreground);
+  --color-primary: var(--mf-color-primary);
+  --color-primary-foreground: var(--mf-color-primary-foreground);
+  --color-secondary: var(--mf-color-secondary);
+  --color-secondary-foreground: var(--mf-color-secondary-foreground);
+  --color-muted: var(--mf-color-muted);
+  --color-muted-foreground: var(--mf-color-muted-foreground);
+  --color-accent: var(--mf-color-accent);
+  --color-accent-foreground: var(--mf-color-accent-foreground);
+  --color-destructive: var(--mf-color-destructive);
+  --color-destructive-foreground: var(--mf-color-destructive-foreground);
+  --color-border: var(--mf-color-border);
+  --color-input: var(--mf-color-input);
+  --color-ring: var(--mf-color-ring);
+
+  --radius-sm: calc(var(--mf-radius) - 4px);
+  --radius-md: calc(var(--mf-radius) - 2px);
+  --radius-lg: var(--mf-radius);
+  --radius-xl: calc(var(--mf-radius) + 4px);
+
+  --font-sans: var(--mf-font-family);
+}

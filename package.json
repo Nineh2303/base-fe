@@ -11,7 +11,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build:framework": "npm run build -w @nineh-fe-base/mf-vite -w @nineh-fe-base/mf-core",
+    "build:framework": "npm run build -w @nineh-fe-base/mf-vite -w @nineh-fe-base/mf-core && npm run build -w @nineh-fe-base/ui",
     "predev": "npm run build:framework",
     "prepreview": "npm run build:framework",
     "dev": "concurrently -k -n shell,auth,products -c blue,green,magenta \"npm run dev -w shell\" \"npm run dev -w auth-service\" \"npm run dev -w products-service\"",
