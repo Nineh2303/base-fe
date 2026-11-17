@@ -36,6 +36,6 @@ Also exported: `cn()` (clsx + tailwind-merge), every `*Variants` cva definition 
 
 ## Overlays and Toaster
 
-Dialog, DropdownMenu, Select and Tooltip teleport into the enclosing service's `[data-mf-portal]` element (via `usePortalTo()`), falling back to `body`, so scoped tokens apply to them. Mount a single `Toaster` per app (the host Layout): vue-sonner shares one global store, so every mounted `Toaster` shows every `toast()`.
+Dialog, DropdownMenu, Select and Tooltip teleport into the enclosing service's `[data-mf-portal]` element (via `usePortalTo()`), falling back to `body`, so scoped tokens apply to them. Mount a single `Toaster` per app (the host Layout): vue-sonner shares one global store, so every mounted `Toaster` shows every `toast()`. Because that single Toaster lives at host scope, toasts use the host's tokens, not a remote's scoped tokens, even when a remote calls `toast()` (an accepted deviation from spec §4).
 
 Peer dependencies: `vue`, `@nineh-fe-base/mf-core`, `tailwindcss` (v4). The Tailwind plugin is added by `@nineh-fe-base/mf-vite` by default.

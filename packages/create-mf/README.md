@@ -10,7 +10,6 @@ npm create @nineh-fe-base/mf <name> -- --kind host|remote --port N
 - `<name>` phải là JS identifier (không dấu gạch ngang); host còn phải là tên npm hợp lệ (chữ thường). Tên package npm được suy ra dạng kebab-case (`myOrders` -> `my-orders`).
 - Sau khi sinh: `cd <name> && npm install && npm run dev`.
 
-
 ## `ui add`: eject component
 
 ```bash
@@ -24,5 +23,6 @@ Sau khi eject, lệnh so các package mà file vừa chép import (`reka-ui`, `l
 **Toaster**: `Toaster` đã eject đóng gói store vue-sonner riêng, nên `toast()` gọi qua `@nineh-fe-base/ui` dùng chung sẽ không hiện trong nó. Chỉ eject `toast` khi project cũng tự gọi `toast` từ vue-sonner của chính nó; nếu không thì đừng eject Toaster (lệnh in cảnh báo này khi eject `toast`).
 
 Project sinh ra đã dùng Tailwind và `@nineh-fe-base/ui` (host import `host.css` trong `bootstrap.ts`; remote import `src/style.css` từ `routes.ts`).
+
 Template nằm trong `templates/` (có `.npmrc` trỏ `@nineh-fe-base` tới GitHub Packages; cần token `read:packages`).
 Repo URL trong `package.json` (`nineh-fe-base/mf-framework`) là giá trị tạm.

@@ -57,7 +57,9 @@ Name hoặc `routePrefix` trùng thì remote đến sau bị bỏ qua (có cản
 
 ### Chính sách version
 
-Tương thích ngược trong một major của `mf-core`. Khi còn `0.x`, tăng minor là breaking: host 0.1.x **từ chối** nạp remote build với 0.2.x (và ngược lại), hiện lỗi rõ ràng. Lệch major cũng bị từ chối. Bốn package framework dùng chung version (`fixed` trong changesets).
+Tương thích ngược trong một major của `mf-core`. Khi còn `0.x`, tăng minor là breaking: host 0.1.x **từ chối** nạp remote build với 0.2.x (và ngược lại), hiện lỗi rõ ràng. Lệch major cũng bị từ chối. Các package framework dùng chung version (`fixed` trong changesets).
+
+Loader chỉ kiểm tra tương thích của `mf-core`, **không** kiểm tra `@nineh-fe-base/ui`. ui được giữ đồng bộ nhờ nhóm `fixed` của Changesets (cùng version với `mf-core`) và template dùng `^frameworkVersion` cho mọi package framework. Hãy giữ host và mọi remote trên **cùng minor** của framework, để ui (singleton) không bị lệch giữa host và remote.
 
 ### Auth
 
@@ -172,6 +174,8 @@ Dialog, DropdownMenu, Select, Tooltip dùng portal của Reka UI. `RemoteBoundar
 ### Toast
 
 Chỉ mount **một** `<Toaster />` cho cả app (trong Layout của host); vue-sonner dùng một store toàn cục nên mọi `Toaster` đều hiện mọi `toast()`. Gọi `toast(...)` (export từ `@nineh-fe-base/ui`) ở bất kỳ đâu.
+
+Toaster duy nhất nằm ở scope của host, nên toast luôn dùng token của host, kể cả khi `toast()` được gọi từ một remote có override token theo scope. Đây là sai khác đã được chấp nhận so với spec §4.
 
 ### Tắt Tailwind
 

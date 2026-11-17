@@ -112,6 +112,8 @@ The `create-mf` remote template ships this as a commented example in its CSS.
 
 `mf-core` owns the injection key and exports it. ui depends on `mf-core` as a peer.
 
+Accepted deviation: Toast is the exception, because the single host `Toaster` lives at host scope, so toasts use host tokens rather than the calling remote's scoped tokens.
+
 ### 5. `@nineh-fe-base/ui` package
 
 **Starter components:**
@@ -197,7 +199,7 @@ The package joins the Changesets `fixed` group with the other three.
    - The remote name comes from the manifest entry.
 4. **Portal injection key.** The key is `Symbol.for('nineh-fe-base/ui-portal')`, so it stays stable even if a second copy is ever loaded. Ejected components import the helper from `@nineh-fe-base/ui`, which is shared, and never inline it.
 5. **ui detection in `mf-vite`.**
-   - The project's root `package.json` (Vite `root`, falling back to cwd) is checked in `dependencies` and `devDependencies`, the same file the existing version resolution reads.
+   - The project's `package.json` in the directory the command runs in (`process.cwd()`) is checked in `dependencies` and `devDependencies`, the same file the existing version resolution reads.
    - Presence is enough, so a workspace link counts.
    - `reka-ui` is shared together with ui, and its `requiredVersion` is taken from ui's own `package.json`.
 6. **Standalone CSS.** `main.ts` imports `host.css` and the exposed module imports `remote.css`. Theme and utilities are duplicated in standalone only, which is acceptable. The fixed layer order (call 2) keeps preflight below the utilities whatever the load order.
