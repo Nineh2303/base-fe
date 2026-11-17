@@ -1,16 +1,24 @@
 import { basename, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
 import * as p from '@clack/prompts'
+import { ejectComponents } from './eject'
 import { generate, readFrameworkVersion, validateName, validatePort } from './generate'
 
 const USAGE = `Usage: create-mf <name> --kind <host|remote> [--port <number>]
+       create-mf ui add <component...> [--dir <path>] [--force]
 
   npm create @nineh-fe-base/mf <name> -- --kind remote --port 5010
 
 Options:
   --kind <host|remote>  Project kind
   --port <number>       Dev server port (default: 5000 for host, 5010 for remote)
-  -h, --help            Show this help`
+  --dir <path>          (ui add) Target directory (default: src/components/ui)
+  --force               (ui add) Overwrite existing files
+  -h, --help            Show this help
+
+ui add copies component source from @nineh-fe-base/ui into your project.
+Only "create-mf ui add ..." runs the eject command; "create-mf ui" alone
+scaffolds a project named "ui".`
 
 function fail(message: string): never {
   console.error(message)
@@ -23,11 +31,28 @@ async function main(): Promise<void> {
     options: {
       kind: { type: 'string' },
       port: { type: 'string' },
+      dir: { type: 'string' },
+      force: { type: 'boolean' },
       help: { type: 'boolean', short: 'h' },
     },
   })
   if (values.help) {
     console.log(USAGE)
+    return
+  }
+
+  if (positionals[0] === 'ui' && positionals[1] === 'add') {
+    try {
+      const { written } = await ejectComponents({
+        names: positionals.slice(2),
+        cwd: process.cwd(),
+        dir: values.dir,
+        force: values.force,
+      })
+      console.log(['Ejected ' + written.length + ' file(s):', ...written.map((f) => '  ' + f)].join('\n'))
+    } catch (err) {
+      fail(err instanceof Error ? err.message : String(err))
+    }
     return
   }
 
