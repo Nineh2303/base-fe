@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, parse, resolve } from 'node:path'
 
@@ -59,7 +59,36 @@ export function rewriteImports(
   })
 }
 
-export async function ejectComponents(opts: EjectOptions): Promise<{ written: string[] }> {
+// Bare specifiers in `from '…'`, `import '…'` and `import('…')`.
+const BARE_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])([^'"./\n][^'"\n]*)\1/g
+
+/** Package names (`pkg`, `@scope/pkg`) imported by bare specifier; `node:` builtins excluded. */
+export function collectBareImports(source: string): Set<string> {
+  const out = new Set<string>()
+  for (const m of source.matchAll(BARE_SPECIFIER)) {
+    const spec = m[2]!
+    if (spec.startsWith('node:')) continue
+    const parts = spec.split('/')
+    out.add(spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0]!)
+  }
+  return out
+}
+
+function readJsonIfExists(file: string): Record<string, any> | undefined {
+  if (!existsSync(file)) return undefined
+  return JSON.parse(readFileSync(file, 'utf8'))
+}
+
+/** Version spec to suggest for a package, taken from ui's own package.json. */
+function suggestedVersion(ui: Record<string, any> | undefined, name: string): string | undefined {
+  if (!ui) return undefined
+  if (name === UI_PACKAGE && ui.version) return `^${ui.version}`
+  return ui.dependencies?.[name] ?? ui.peerDependencies?.[name]
+}
+
+export async function ejectComponents(
+  opts: EjectOptions,
+): Promise<{ written: string[]; missingDependencies: string[] }> {
   const cwd = resolve(opts.cwd)
   const uiRoot = opts.uiRoot ?? resolveUiRoot(cwd)
   const componentsDir = join(uiRoot, 'src', 'components')
@@ -101,5 +130,35 @@ export async function ejectComponents(opts: EjectOptions): Promise<{ written: st
     await writeFile(file, content)
   }
   for (const w of warnings) console.warn(`warning: ${w}`)
-  return { written: plan.map((p) => p.file) }
+
+  // Ejected files import packages (reka-ui, lucide-vue-next, ...) that otherwise resolve only
+  // through npm hoisting: compare them with the project's own package.json.
+  const imported = new Set<string>()
+  for (const { file, content } of plan) {
+    if (typeof content === 'string' && /\.(ts|vue)$/.test(file)) {
+      for (const pkg of collectBareImports(content)) imported.add(pkg)
+    }
+  }
+  const project = readJsonIfExists(join(cwd, 'package.json'))
+  const declared = { ...project?.devDependencies, ...project?.dependencies }
+  const missingDependencies = [...imported].filter((p) => !(p in declared)).sort()
+  if (missingDependencies.length) {
+    const ui = readJsonIfExists(join(uiRoot, 'package.json'))
+    const install = missingDependencies.map((p) => {
+      const v = suggestedVersion(ui, p)
+      return `"${v ? `${p}@${v}` : p}"`
+    })
+    console.warn(
+      `warning: the ejected files import packages not declared in ${join(cwd, 'package.json')}: ${missingDependencies.join(', ')}\n` +
+        `  They only resolve through npm hoisting today. Add them:\n  npm install ${install.join(' ')}`,
+    )
+  }
+  if (names.includes('toast')) {
+    console.warn(
+      'warning: an ejected Toaster bundles its own vue-sonner store, so toast() calls made through ' +
+        `${UI_PACKAGE} will not show in it. Eject Toaster only together with the code that calls toast() ` +
+        '(importing toast from vue-sonner in this project), or keep using the shared Toaster.',
+    )
+  }
+  return { written: plan.map((p) => p.file), missingDependencies }
 }

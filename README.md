@@ -161,7 +161,9 @@ Dark mode: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *
    npx @nineh-fe-base/create-mf ui add card --dir src/ui --force # đổi thư mục, cho phép ghi đè
    ```
 
-   Không có `--force` thì lệnh từ chối ghi đè file đã có; tên không tồn tại thì in danh sách component. Import nội bộ (`lib/utils`, helper) được viết lại thành `@nineh-fe-base/ui`; import tới component anh em được viết lại tương tự, trừ khi component đó cũng được eject cùng lệnh hoặc đã có trong thư mục đích.
+   Không có `--force` thì lệnh từ chối ghi đè file đã có; tên không tồn tại thì in danh sách component. Import nội bộ (`lib/utils`, helper) được viết lại thành `@nineh-fe-base/ui`; import tới component anh em được viết lại tương tự, trừ khi component đó cũng được eject cùng lệnh hoặc đã có trong thư mục đích. File đã eject import thẳng `reka-ui`, `lucide-vue-next`, `class-variance-authority`, ...; lệnh cảnh báo package nào chưa có trong `package.json` của project và in sẵn lệnh `npm install` (version lấy theo ui).
+
+   **Không eject Toaster** trừ khi project tự gọi `toast` từ vue-sonner của chính nó: `Toaster` đã eject đóng gói store vue-sonner riêng, nên `toast()` từ `@nineh-fe-base/ui` dùng chung không hiện trong nó.
 
 ### Overlay và portal
 
