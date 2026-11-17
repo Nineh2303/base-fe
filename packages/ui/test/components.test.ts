@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import { mount } from '@vue/test-utils'
-import { Button, Card, Input } from '../src'
+import { AvatarRoot, AvatarImage as RekaAvatarImage } from 'reka-ui'
+import { AvatarImage, Button, Card, Input } from '../src'
 
 describe('components', () => {
   it('Button merges caller class over defaults', () => {
@@ -32,5 +33,17 @@ describe('components', () => {
     expect(input.element.value).toBe('a')
     await input.setValue('b')
     expect(value.value).toBe('b')
+  })
+})
+
+describe('Avatar image', () => {
+  it('forwards all props, not only src', () => {
+    const w = mount({
+      render: () => h(AvatarRoot, null, { default: () => h(AvatarImage, { src: '/a.png', crossOrigin: 'anonymous', referrerPolicy: 'no-referrer', class: 'x' }) }),
+    })
+    const inner = w.findComponent(RekaAvatarImage)
+    expect(inner.props('src')).toBe('/a.png')
+    expect(inner.props('crossOrigin')).toBe('anonymous')
+    expect(inner.props('referrerPolicy')).toBe('no-referrer')
   })
 })
