@@ -37,14 +37,16 @@ test('reload /products after login restores the session', async ({ page }) => {
   expect(new URL(page.url()).pathname).toBe('/products')
 })
 
-test('remote CSS is applied: products title uses --mf-color-primary', async ({ page }) => {
+test('remote CSS is applied: products title uses the scoped --mf-color-primary', async ({ page }) => {
   await page.goto('/products')
   await login(page)
   const title = page.locator('.products-title')
   await expect(title).toBeVisible()
   const { actual, expected } = await page.evaluate(() => {
     const probe = document.createElement('span')
-    const token = getComputedStyle(document.documentElement).getPropertyValue('--mf-color-primary').trim()
+    // the products remote overrides the token inside its scope element, so resolve it there
+    const scope = document.querySelector('[data-mf-remote="products"]')!
+    const token = getComputedStyle(scope).getPropertyValue('--mf-color-primary').trim()
     probe.style.color = token
     document.body.appendChild(probe)
     const expected = getComputedStyle(probe).color // resolve token to rgb()

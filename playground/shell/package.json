@@ -11,6 +11,7 @@
   "dependencies": {
     "@module-federation/runtime": "^2.9.3",
     "@nineh-fe-base/mf-core": "*",
+    "@nineh-fe-base/ui": "*",
     "@playground/mocks": "*",
     "pinia": "^4.1.0",
     "vue": "^3.5.45",

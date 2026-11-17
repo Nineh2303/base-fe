@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '@nineh-fe-base/mf-core'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@nineh-fe-base/ui'
 
 const { t } = useI18n()
 const { login } = useAuth()
@@ -30,43 +31,30 @@ async function onSubmit() {
 </script>
 
 <template>
-  <form class="auth-login" @submit.prevent="onSubmit">
-    <h1>{{ t('auth.title') }}</h1>
-    <label>
-      {{ t('auth.username') }}
-      <input v-model="username" data-test="username" autocomplete="username" required />
-    </label>
-    <label>
-      {{ t('auth.password') }}
-      <input v-model="password" data-test="password" type="password" autocomplete="current-password" required />
-    </label>
-    <p v-if="error" class="auth-error" role="alert" data-test="login-error">{{ t('auth.error') }}</p>
-    <button type="submit" data-test="submit" :disabled="pending">{{ t('auth.submit') }}</button>
-  </form>
+  <Card class="max-w-sm">
+    <CardHeader>
+      <CardTitle>{{ t('auth.title') }}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <form class="flex flex-col gap-3" @submit.prevent="onSubmit">
+        <div class="flex flex-col gap-1.5">
+          <Label for="auth-username">{{ t('auth.username') }}</Label>
+          <Input id="auth-username" v-model="username" data-test="username" autocomplete="username" required />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <Label for="auth-password">{{ t('auth.password') }}</Label>
+          <Input
+            id="auth-password"
+            v-model="password"
+            data-test="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <p v-if="error" class="text-destructive m-0 text-sm" role="alert" data-test="login-error">{{ t('auth.error') }}</p>
+        <Button type="submit" data-test="submit" :disabled="pending">{{ t('auth.submit') }}</Button>
+      </form>
+    </CardContent>
+  </Card>
 </template>
-
-<style scoped>
-.auth-login {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 20rem;
-}
-.auth-login label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.auth-login input {
-  font: inherit;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid var(--mf-color-border);
-  border-radius: 4px;
-  background: var(--mf-color-bg);
-  color: var(--mf-color-text);
-}
-.auth-error {
-  margin: 0;
-  color: #dc2626;
-}
-</style>

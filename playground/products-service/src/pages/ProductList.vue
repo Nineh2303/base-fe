@@ -1,8 +1,24 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@nineh-fe-base/ui'
 import { useProductListStore } from '../stores/list'
-import '../products.css'
 
 const store = useProductListStore()
 const { items, loading, error } = storeToRefs(store)
@@ -12,25 +28,47 @@ onMounted(() => store.fetch())
 </script>
 
 <template>
-  <section>
-    <h1 class="products-title" data-test="products-title">Sản phẩm</h1>
+  <section class="flex flex-col gap-4">
+    <h1 class="products-title text-primary text-2xl font-semibold" data-test="products-title">Sản phẩm</h1>
     <p v-if="loading" data-test="products-loading">Đang tải…</p>
-    <p v-else-if="error" role="alert" data-test="products-error">Không tải được danh sách: {{ error }}</p>
-    <table v-else class="products-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Tên</th>
-          <th>Giá</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in items" :key="p.id" data-test="product-row">
-          <td>{{ p.id }}</td>
-          <td>{{ p.name }}</td>
-          <td class="price">{{ price.format(p.price) }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <p v-else-if="error" class="text-destructive" role="alert" data-test="products-error">
+      Không tải được danh sách: {{ error }}
+    </p>
+    <Table v-else class="min-w-96">
+      <TableHeader>
+        <TableRow>
+          <TableHead>#</TableHead>
+          <TableHead>Tên</TableHead>
+          <TableHead class="text-right">Giá</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow v-for="p in items" :key="p.id" data-test="product-row">
+          <TableCell>{{ p.id }}</TableCell>
+          <TableCell>
+            {{ p.name }}
+            <Badge variant="secondary" class="ml-2">mới</Badge>
+          </TableCell>
+          <TableCell class="text-right">{{ price.format(p.price) }}</TableCell>
+          <TableCell class="text-right">
+            <Dialog>
+              <DialogTrigger as-child>
+                <Button size="sm" data-test="product-detail">Chi tiết</Button>
+              </DialogTrigger>
+              <DialogContent data-test="product-dialog">
+                <DialogHeader>
+                  <DialogTitle>{{ p.name }}</DialogTitle>
+                  <DialogDescription>Giá: {{ price.format(p.price) }}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button data-test="dialog-confirm">Đặt hàng</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   </section>
 </template>

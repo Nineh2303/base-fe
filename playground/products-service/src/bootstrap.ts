@@ -1,5 +1,6 @@
 import { createStandaloneRemote } from '@nineh-fe-base/mf-core'
 import { startMocks } from '@playground/mocks'
+import '@nineh-fe-base/ui/styles/host.css'
 import routes from './routes'
 
 await startMocks()
