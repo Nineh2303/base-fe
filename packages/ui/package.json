@@ -32,6 +32,8 @@
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
+    "@tailwindcss/node": "^4.3.5",
+    "@tailwindcss/oxide": "^4.3.5",
     "@vitejs/plugin-vue": "^6.0.11",
     "@vue/test-utils": "^2.6.0",
     "jsdom": "^31.0.1",
