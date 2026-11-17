@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
+import './style.css'
 import SamplePage from './pages/SamplePage.vue'
 
 const routes: RouteRecordRaw[] = [

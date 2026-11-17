@@ -2,6 +2,16 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth, useMfContext, useMfLayout, useTheme } from '@nineh-fe-base/mf-core'
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Toaster,
+} from '@nineh-fe-base/ui'
 
 const { remotes } = useMfContext()
 const { user, isAuthenticated, logout } = useAuth()
@@ -26,76 +36,41 @@ async function onLogout() {
 </script>
 
 <template>
-  <div class="shell">
-    <header v-if="showLayout" class="shell-header">
-      <RouterLink to="/" class="shell-brand">%%name%%</RouterLink>
-      <nav class="shell-nav">
-        <RouterLink v-for="r in menu" :key="r.name" :to="r.routePrefix">
+  <div class="min-h-screen bg-background text-foreground">
+    <header v-if="showLayout" class="flex items-center gap-6 border-b border-border px-6 py-3">
+      <RouterLink to="/" class="font-semibold">%%name%%</RouterLink>
+      <nav class="flex flex-1 gap-4 text-sm">
+        <RouterLink
+          v-for="r in menu"
+          :key="r.name"
+          :to="r.routePrefix"
+          class="text-muted-foreground hover:text-foreground"
+          active-class="font-semibold text-foreground"
+        >
           {{ r.menu!.label }}
         </RouterLink>
       </nav>
-      <div class="shell-actions">
-        <button type="button" @click="toggleTheme">
+      <div class="flex items-center gap-2">
+        <Button type="button" variant="outline" size="sm" @click="toggleTheme">
           {{ theme.mode.value === 'light' ? 'Dark' : 'Light' }}
-        </button>
-        <template v-if="isAuthenticated">
-          <span>{{ user?.name }}</span>
-          <button type="button" @click="onLogout">Log out</button>
-        </template>
-        <RouterLink v-else to="/auth/login">Log in</RouterLink>
+        </Button>
+        <DropdownMenu v-if="isAuthenticated">
+          <DropdownMenuTrigger as-child>
+            <Button type="button" variant="ghost" size="sm">{{ user?.name }}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{{ user?.name }}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem @select="onLogout">Log out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button v-else as-child size="sm"><RouterLink to="/auth/login">Log in</RouterLink></Button>
       </div>
     </header>
-    <main class="shell-main">
+    <main class="p-6">
       <RouterView />
     </main>
+    <!-- One Toaster per app: call toast() from the ui package anywhere. -->
+    <Toaster />
   </div>
 </template>
-
-<style>
-html,
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--mf-color-bg);
-  color: var(--mf-color-text);
-}
-a {
-  color: var(--mf-color-primary);
-}
-button {
-  font: inherit;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid var(--mf-color-border);
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-.shell-header {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--mf-color-border);
-}
-.shell-brand {
-  font-weight: 600;
-  text-decoration: none;
-}
-.shell-nav {
-  display: flex;
-  gap: 1rem;
-  flex: 1;
-}
-.shell-nav .router-link-active {
-  font-weight: 600;
-}
-.shell-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.shell-main {
-  padding: 1.5rem;
-}
-</style>

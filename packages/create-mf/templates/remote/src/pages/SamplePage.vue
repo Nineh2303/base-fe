@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@nineh-fe-base/mf-core'
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@nineh-fe-base/ui'
 import { useSampleStore } from '../stores/sample'
 
 const store = useSampleStore()
@@ -9,9 +10,13 @@ const { user } = useAuth()
 </script>
 
 <template>
-  <section>
-    <h1>%%name%%</h1>
-    <p>{{ user ? `Signed in as ${user.name}.` : 'Not signed in.' }}</p>
-    <button type="button" @click="store.increment()">Clicked {{ count }} times</button>
-  </section>
+  <Card class="max-w-md">
+    <CardHeader>
+      <CardTitle>%%name%%</CardTitle>
+      <CardDescription>{{ user ? `Signed in as ${user.name}.` : 'Not signed in.' }}</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Button type="button" @click="store.increment()">Clicked {{ count }} times</Button>
+    </CardContent>
+  </Card>
 </template>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@module-federation/runtime": "%%moduleFederationRuntimeVersion%%",
     "@nineh-fe-base/mf-core": "^%%frameworkVersion%%",
+    "@nineh-fe-base/ui": "^%%frameworkVersion%%",
     "pinia": "%%piniaVersion%%",
     "vue": "%%vueVersion%%",
     "vue-i18n": "%%vueI18nVersion%%",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@nineh-fe-base/mf-vite": "^%%frameworkVersion%%",
+    "tailwindcss": "%%tailwindVersion%%",
     "typescript": "%%typescriptVersion%%",
     "vite": "%%viteVersion%%",
     "vue-tsc": "%%vueTscVersion%%"

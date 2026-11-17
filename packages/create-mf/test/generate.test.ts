@@ -150,3 +150,30 @@ describe('package names and placeholders', () => {
     expect(readFileSync(join(dest, 'b.bin')).equals(bin)).toBe(true)
   })
 })
+
+describe('tailwind + ui templates', () => {
+  it('host depends on ui and tailwind, imports host.css, mounts one Toaster', async () => {
+    const host = join(base, 'shell')
+    await generate({ kind: 'host', name: 'shell', targetDir: host, frameworkVersion: '1.2.3' })
+    const pkg = JSON.parse(read(host, 'package.json'))
+    expect(pkg.dependencies['@nineh-fe-base/ui']).toBe('^1.2.3')
+    expect(pkg.devDependencies.tailwindcss).toMatch(/^\^4\./)
+    expect(read(host, 'src/bootstrap.ts')).toContain("import '@nineh-fe-base/ui/styles/host.css'")
+    expect(read(host, 'src/Layout.vue')).toContain('<Toaster')
+    expect(read(host, 'src/pages/Login.vue')).toContain('@nineh-fe-base/ui')
+  })
+
+  it('remote has style.css with remote.css and scoped token example, routes imports it', async () => {
+    const remote = join(base, 'orders')
+    await generate({ kind: 'remote', name: 'orders', targetDir: remote, frameworkVersion: '1.2.3' })
+    const pkg = JSON.parse(read(remote, 'package.json'))
+    expect(pkg.dependencies['@nineh-fe-base/ui']).toBe('^1.2.3')
+    expect(pkg.devDependencies.tailwindcss).toMatch(/^\^4\./)
+    const css = read(remote, 'src/style.css')
+    expect(css).toContain('@nineh-fe-base/ui/styles/remote.css')
+    expect(css).toContain('[data-mf-remote="orders"]')
+    expect(read(remote, 'src/routes.ts')).toContain("import './style.css'")
+    expect(read(remote, 'src/bootstrap.ts')).toContain('@nineh-fe-base/ui/styles/host.css')
+    expect(read(remote, 'src/pages/SamplePage.vue')).toContain('@nineh-fe-base/ui')
+  })
+})

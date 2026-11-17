@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@nineh-fe-base/mf-core'
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@nineh-fe-base/ui'
 
 const { login } = useAuth()
 const route = useRoute()
@@ -28,15 +29,25 @@ async function onSubmit() {
 </script>
 
 <template>
-  <form @submit.prevent="onSubmit">
-    <h1>Log in</h1>
-    <p>
-      <label>Username <input v-model="username" autocomplete="username" required /></label>
-    </p>
-    <p>
-      <label>Password <input v-model="password" type="password" autocomplete="current-password" required /></label>
-    </p>
-    <p v-if="error" role="alert">Login failed. Check your credentials and that the /api auth backend is running.</p>
-    <button type="submit" :disabled="pending">Log in</button>
-  </form>
+  <Card class="mx-auto max-w-sm">
+    <CardHeader>
+      <CardTitle>Log in</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <form class="space-y-4" @submit.prevent="onSubmit">
+        <div class="space-y-2">
+          <Label for="username">Username</Label>
+          <Input id="username" v-model="username" autocomplete="username" required />
+        </div>
+        <div class="space-y-2">
+          <Label for="password">Password</Label>
+          <Input id="password" v-model="password" type="password" autocomplete="current-password" required />
+        </div>
+        <p v-if="error" role="alert" class="text-sm text-destructive">
+          Login failed. Check your credentials and that the /api auth backend is running.
+        </p>
+        <Button type="submit" class="w-full" :disabled="pending">Log in</Button>
+      </form>
+    </CardContent>
+  </Card>
 </template>

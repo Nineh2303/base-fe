@@ -9,6 +9,7 @@ export const VERSIONS = {
   vueRouterVersion: '^5.5.1',
   vueI18nVersion: '^11.4.20',
   moduleFederationRuntimeVersion: '^2.9.3',
+  tailwindVersion: '^4.3.5',
   viteVersion: '^8.3.8',
   typescriptVersion: '^6.0.3',
   vueTscVersion: '^3.3.14',

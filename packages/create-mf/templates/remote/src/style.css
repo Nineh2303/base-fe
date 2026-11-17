@@ -1,0 +1,12 @@
+@import '@nineh-fe-base/ui/styles/remote.css';
+
+/*
+ * Per-service theme: override tokens only inside this remote's scope element.
+ * Keep it unlayered (do not wrap in @layer) so it always wins over the shared defaults.
+ *
+ * [data-mf-remote="%%name%%"] {
+ *   --mf-color-primary: #7c3aed;
+ *   --mf-color-primary-foreground: #ffffff;
+ *   --mf-radius: 0.75rem;
+ * }
+ */
