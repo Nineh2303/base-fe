@@ -89,8 +89,12 @@ export function createTheme(opts: {
 
   const mode = ref<ThemeMode>(initial)
 
+  let applied: string[] = []
   function apply(): void {
     const el = document.documentElement
+    // Drop vars set for the previous mode that the new mode does not define.
+    for (const k of applied) if (!(k in tokens[mode.value])) el.style.removeProperty(`--mf-${k}`)
+    applied = Object.keys(tokens[mode.value])
     for (const [k, v] of Object.entries(tokens[mode.value])) el.style.setProperty(`--mf-${k}`, v)
     el.setAttribute('data-theme', mode.value)
   }

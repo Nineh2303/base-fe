@@ -26,20 +26,31 @@ export function jwtAdapter(opts: JwtAdapterOptions): AuthAdapter {
       return null
     }
   }
+  // Web storage can throw (denied, quota): the in-memory copy is always kept as the fallback.
   const getRefresh = (): string | null => {
     const s = storage()
-    return s ? s.getItem(storageKey) : memoryRefresh
-  }
-  const setRefresh = (token: string | null) => {
-    const s = storage()
-    if (s) {
-      if (token) s.setItem(storageKey, token)
-      else s.removeItem(storageKey)
-    } else {
-      memoryRefresh = token
+    if (!s) return memoryRefresh
+    try {
+      return s.getItem(storageKey)
+    } catch {
+      return memoryRefresh
     }
   }
+  const setRefresh = (token: string | null) => {
+    memoryRefresh = token
+    const s = storage()
+    if (!s) return
+    try {
+      if (token) s.setItem(storageKey, token)
+      else s.removeItem(storageKey)
+    } catch {
+      // keep the in-memory copy
+    }
+  }
+  // Bumped by login/logout/clear: a refresh that started before it must not write its result afterwards.
+  let epoch = 0
   const clear = () => {
+    epoch++
     accessToken = null
     setRefresh(null)
   }
@@ -50,6 +61,7 @@ export function jwtAdapter(opts: JwtAdapterOptions): AuthAdapter {
         endpoints.login,
         credentials,
       )
+      epoch++
       accessToken = data.accessToken
       if (data.refreshToken) setRefresh(data.refreshToken)
       return data.user
@@ -64,16 +76,19 @@ export function jwtAdapter(opts: JwtAdapterOptions): AuthAdapter {
     },
     async refresh() {
       let refreshToken = getRefresh()
+      const startEpoch = epoch
       // At most one retry: when another tab rotated the stored token while ours was in flight.
       for (let attempt = 0; refreshToken && attempt < 2; attempt++) {
         try {
           const { data } = await client.post<{ accessToken: string; refreshToken?: string }>(endpoints.refresh, {
             refreshToken,
           })
+          if (epoch !== startEpoch) return false // logged out / re-logged in meanwhile: discard
           accessToken = data.accessToken
           if (data.refreshToken) setRefresh(data.refreshToken)
           return true
         } catch (e) {
+          if (epoch !== startEpoch) return false
           // Network/5xx errors: keep the stored token, the session may still be valid.
           const status = axios.isAxiosError(e) ? e.response?.status : undefined
           if (status !== 401 && status !== 403 && status !== 400) return false
