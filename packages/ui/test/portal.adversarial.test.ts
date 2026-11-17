@@ -122,14 +122,14 @@ describe('adversarial: toaster', () => {
     expect(document.body.querySelector('[data-mf-portal]')).toBeNull()
     expect(el.contains(t)).toBe(false)
   })
-  it('two Toasters: documents whether a toast is duplicated', async () => {
+  it('two Toasters each show every toast (mount a single Toaster)', async () => {
     await mountApp(() => h('div', null, [h(Toaster), h(Toaster)]))
     toast('dup-check')
     await flush()
     const n = (document.body.textContent!.match(/dup-check/g) ?? []).length
-    // Behavior note: vue-sonner toasters share one global store, so every mounted Toaster may show the toast.
-    expect(n).toBeGreaterThanOrEqual(1)
-    console.info(`[doc] two Toasters render a toast ${n} time(s)`)
+    // vue-sonner toasters share one global store, so each mounted Toaster shows every toast.
+    expect(document.body.querySelectorAll('[data-sonner-toaster]').length).toBe(2)
+    expect(n).toBe(2)
   })
 })
 

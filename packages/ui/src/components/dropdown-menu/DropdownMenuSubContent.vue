@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils'
 import { usePortalTo } from '../../lib/portal'
 
 defineOptions({ inheritAttrs: false })
-const props = withDefaults(defineProps<DropdownMenuSubContentProps & { class?: HTMLAttributes['class'] }>(), {  })
+const props = defineProps<DropdownMenuSubContentProps & { class?: HTMLAttributes['class'] }>()
 const emits = defineEmits<DropdownMenuSubContentEmits>()
 const portalTo = usePortalTo()
 

@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Toaster as Sonner, type ToasterProps } from 'vue-sonner'
+import { Toaster as Sonner } from 'vue-sonner'
 import { usePortalTo } from '../../lib/portal'
 
-defineOptions({ inheritAttrs: false })
-const props = defineProps<ToasterProps>()
-const portalTo = usePortalTo()
+// No defineProps: declaring vue-sonner's boolean props here would cast omitted ones to false and
+// override its defaults. Everything is forwarded as attrs, so only what the caller passes reaches it.
 // vue-sonner renders in place (no teleport), so mount it into the scope's portal element explicitly.
-const to = computed(() => portalTo.value)
+const portalTo = usePortalTo()
 </script>
 
 <template>
-  <Teleport :to="to">
-    <Sonner class="toaster group" v-bind="{ ...$attrs, ...props }" />
+  <Teleport :to="portalTo">
+    <Sonner class="toaster group" />
   </Teleport>
 </template>
