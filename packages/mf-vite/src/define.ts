@@ -18,8 +18,7 @@ function readJson(file: string): Record<string, any> {
 }
 
 /** Dependencies of the consuming project, read from its package.json. */
-function readVersions(root: string): Record<string, string> {
-  const pkg = readJson(join(root, 'package.json'))
+function readVersions(pkg: Record<string, any>): Record<string, string> {
   return { ...pkg.peerDependencies, ...pkg.devDependencies, ...pkg.dependencies }
 }
 
@@ -42,15 +41,14 @@ function readCoreVersion(root: string): string {
 
 function createContext(root: string): FederationContext {
   const pkg = readJson(join(root, 'package.json'))
-  const versions = readVersions(root)
-  const ctx: FederationContext = { root, versions, coreVersion: readCoreVersion(root) }
+  const { [UI_PACKAGE]: uiSpec, ...rest } = readVersions(pkg)
   // ui is shared only when listed in dependencies/devDependencies (a peer listing does not count)
   const usesUi = Boolean(pkg.dependencies?.[UI_PACKAGE] ?? pkg.devDependencies?.[UI_PACKAGE])
+  const versions = usesUi ? { ...rest, [UI_PACKAGE]: uiSpec as string } : rest
+  const ctx: FederationContext = { root, versions, coreVersion: readCoreVersion(root) }
   if (usesUi) {
     const ui = readInstalledPackage(root, UI_PACKAGE)
     ctx.ui = { version: ui.version, rekaRange: ui.dependencies?.['reka-ui'] }
-  } else {
-    delete versions[UI_PACKAGE]
   }
   return ctx
 }

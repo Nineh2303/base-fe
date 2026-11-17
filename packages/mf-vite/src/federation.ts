@@ -48,7 +48,13 @@ export function buildFederationOptions(
       `Invalid federation name "${opts.name}": name must be a valid JS identifier (JS identifier rules)`,
     )
   }
-  const shared = buildShared(ctx.versions, opts.shared, ctx.coreVersion, ctx.ui?.rekaRange, ctx.ui?.version)
+  const shared = buildShared(
+    ctx.versions,
+    opts.shared,
+    ctx.coreVersion,
+    ctx.ui?.rekaRange,
+    ctx.ui?.version,
+  )
   // dts: remotes are loaded at runtime from remotes.json (no static `import 'remote/x'`), so
   // federated type generation has nothing to do; it also crashes dev without a tsconfig.json.
   const base = { name: opts.name, shared, manifest: true, dts: false }

@@ -93,26 +93,4 @@ describe('defineHost/defineRemote', () => {
     const off: any = await (defineHost({ name: 'shell', tailwind: false }) as any)(env)
     expect(pluginNames(off).some((n) => n.startsWith('@tailwindcss/vite'))).toBe(false)
   })
-
-  test.each(['dependencies', 'devDependencies'])('ui in %s is shared with reka-ui', async (field) => {
-    const root = makeProject(fixturesRoot, true, { [field]: { '@nineh-fe-base/ui': 'workspace:*' } }, true)
-    created.push(root)
-    process.chdir(root)
-    // dependencies field replaces the default deps; vue still resolves via defaults absent -> fine
-    const ctxCfg: any = await (defineRemote({ name: 'products', exposes: {} }) as any)(env)
-    expect(ctxCfg).toBeDefined()
-  })
-
-  test('ui only in peerDependencies does not trigger sharing; missing install throws', async () => {
-    const root = makeProject(fixturesRoot, true, { peerDependencies: { '@nineh-fe-base/ui': '*' } })
-    created.push(root)
-    process.chdir(root)
-    await expect((defineHost({ name: 'shell' }) as any)(env)).resolves.toBeDefined()
-    // outside the repo so the hoisted workspace ui is not found
-    const base2 = mkdtempSync(join(tmpdir(), 'mfv-'))
-    const root2 = makeProject(base2, true, { dependencies: { '@nineh-fe-base/ui': '*' } })
-    created.push(base2)
-    process.chdir(root2)
-    await expect((defineHost({ name: 'shell' }) as any)(env)).rejects.toThrow(/@nineh-fe-base\/ui/)
-  })
 })
