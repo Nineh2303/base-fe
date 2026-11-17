@@ -20,13 +20,8 @@ ui add copies component source from @nineh-fe-base/ui into your project.
 Only "create-mf ui add ..." runs the eject command; "create-mf ui" alone
 scaffolds a project named "ui".`
 
-function fail(message: string): never {
-  console.error(message)
-  process.exit(1)
-}
-
-async function main(): Promise<void> {
-  const { values, positionals } = parseArgs({
+const parse = () =>
+  parseArgs({
     allowPositionals: true,
     options: {
       kind: { type: 'string' },
@@ -36,6 +31,21 @@ async function main(): Promise<void> {
       help: { type: 'boolean', short: 'h' },
     },
   })
+
+function fail(message: string): never {
+  console.error(message)
+  process.exit(1)
+}
+
+async function main(): Promise<void> {
+  let parsed: ReturnType<typeof parse>
+  try {
+    parsed = parse()
+  } catch (err) {
+    // unknown option / missing option value: a message and the usage, not a stack trace
+    fail(`${err instanceof Error ? err.message : String(err)}\n\n${USAGE}`)
+  }
+  const { values, positionals } = parsed
   if (values.help) {
     console.log(USAGE)
     return

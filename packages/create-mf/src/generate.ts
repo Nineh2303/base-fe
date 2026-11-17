@@ -61,7 +61,7 @@ export function toPackageName(name: string): string {
 export function render(content: Buffer, values: Record<string, string>): Buffer {
   if (content.includes(0)) return content
   return Buffer.from(
-    content.toString('utf8').replace(/%%(\w+)%%/g, (match, key: string) => values[key] ?? match),
+    content.toString('utf8').replace(/%%(\w+)%%/g, (match, key: string) => Object.hasOwn(values, key) ? values[key]! : match),
   )
 }
 

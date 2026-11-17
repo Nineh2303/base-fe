@@ -25,11 +25,12 @@ const GLOBAL_AT_RULES = new Set([
   'font-palette-values',
   'counter-style',
   'page',
+  'position-try',
   'view-transition',
 ])
 
 /** Conditional group rules: recursed into, so rules inside them are classified individually. */
-const RECURSE_AT_RULES = new Set(['media', 'supports', 'container', 'layer'])
+const RECURSE_AT_RULES = new Set(['media', 'supports', 'container', 'layer', 'starting-style'])
 
 /** Split on top-level commas (ignores commas inside (), [] and strings). */
 function splitTopLevel(selector: string, sep: (ch: string) => boolean): string[] {
@@ -63,13 +64,20 @@ function splitTopLevel(selector: string, sep: (ch: string) => boolean): string[]
   return parts
 }
 
-const SCOPE_ATTR_AT_END = /\[\s*data-mf-remote\s*(?:[~|^$*]?=\s*(?:"[^"]*"|'[^']*'|[^\]\s]+)\s*(?:[iIsS]\s*)?)?\]$/
+const SCOPE_ATTR =
+  /\[\s*data-mf-remote\s*(?:[~|^$*]?=\s*(?:"[^"]*"|'[^']*'|[^\]\s]+)\s*(?:[iIsS]\s*)?)?\]/
+/** `:not(...)` / `:has(...)` arguments (one nesting level) say nothing about the subject itself. */
+const NEGATIVE_OR_RELATIONAL = /:(?:not|has)\((?:[^()]|\([^()]*\))*\)/g
 
-/** True when the selector's subject (last compound) carries a `[data-mf-remote…]` attribute. */
+/**
+ * True when the selector's subject (last compound) is the scope element: it carries a
+ * `[data-mf-remote…]` attribute, alone or combined (`[data-mf-remote='x'][data-theme=dark]`,
+ * `[data-mf-remote='x'].dark`, `[data-mf-remote='x']:hover`, `:where([data-mf-remote='x'])`).
+ */
 function targetsScopeElement(selector: string): boolean {
   const compounds = splitTopLevel(selector.trim(), (ch) => /[\s>+~]/.test(ch)).filter(Boolean)
-  const subject = compounds[compounds.length - 1] ?? ''
-  return SCOPE_ATTR_AT_END.test(subject)
+  const subject = (compounds[compounds.length - 1] ?? '').replace(NEGATIVE_OR_RELATIONAL, '')
+  return SCOPE_ATTR.test(subject)
 }
 
 /** Token overrides such as `[data-mf-remote='x']{--mf-…}` target the scope root: keep them global. */

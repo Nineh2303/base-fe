@@ -97,17 +97,31 @@ function baseConfig(
   return config
 }
 
+/** Merge the user's `vite` override into the base config. */
+function withUserConfig(base: UserConfig, opts: HostOptions | RemoteOptions): UserConfig {
+  const config = mergeConfig(base, opts.vite ?? {})
+  // The origin is derived from `port`; when the user overrides server.port (and not origin) it would
+  // keep pointing at the old port, so federation assets would be requested from the wrong server.
+  const userServer = opts.vite?.server
+  if (opts.port !== undefined && userServer?.port !== undefined && userServer.origin === undefined) {
+    config.server = { ...config.server, origin: `http://localhost:${userServer.port}` }
+  }
+  return config
+}
+
 export function defineHost(opts: HostOptions): UserConfigFnPromise {
   return async () => {
     const ctx = createContext(process.cwd())
-    return mergeConfig(baseConfig('host', opts, ctx), opts.vite ?? {})
+    return withUserConfig(baseConfig('host', opts, ctx), opts)
   }
 }
 
 export function defineRemote(opts: RemoteOptions): UserConfigFnPromise {
   return async () => {
     const ctx = createContext(process.cwd())
+    // build (and validate) the config first: an invalid name must not leave a meta file behind
+    const base = baseConfig('remote', opts, ctx)
     writeMetaModule(ctx.root, { name: opts.name, coreVersion: ctx.coreVersion })
-    return mergeConfig(baseConfig('remote', opts, ctx), opts.vite ?? {})
+    return withUserConfig(base, opts)
   }
 }
