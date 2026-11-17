@@ -359,3 +359,28 @@ describe('RemoteBoundary / RemoteErrorPage labels', () => {
     expect(retry(el)).toBe('Thử lại')
   })
 })
+
+describe('RemoteBoundary scope', () => {
+  it('wraps content in data-mf-remote scope with a trailing portal container', async () => {
+    const el = mountComp(RemoteBoundary, { name: 'products' }, () => h('p', { class: 'ok' }, 'c'))
+    await flush()
+    const root = el.firstElementChild as HTMLElement
+    expect(root.matches('div[data-mf-remote="products"]')).toBe(true)
+    expect(root.style.display).toBe('contents')
+    expect(root.lastElementChild?.matches('[data-mf-portal]')).toBe(true)
+    expect(root.querySelector('.ok')).toBeTruthy()
+  })
+
+  it('scope prop overrides the attribute', () => {
+    const el = mountComp(RemoteBoundary, { name: 'products/Widget', scope: 'products' })
+    expect(el.firstElementChild?.getAttribute('data-mf-remote')).toBe('products')
+  })
+
+  it('error frame renders inside the scope', () => {
+    const el = mountComp(RemoteBoundary, { name: 'x', error: new Error('e') })
+    const root = el.firstElementChild as HTMLElement
+    expect(root.getAttribute('data-mf-remote')).toBe('x')
+    expect(root.querySelector('.mf-remote-error')).toBeTruthy()
+    expect(root.lastElementChild?.matches('[data-mf-portal]')).toBe(true)
+  })
+})

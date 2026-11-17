@@ -65,3 +65,24 @@ describe('theme', () => {
     expect(DEFAULT_TOKENS.light['font-family']).toBe('system-ui, sans-serif')
   })
 })
+
+describe('DEFAULT_TOKENS shadcn set', () => {
+  const keys = [
+    'color-primary', 'color-bg', 'color-text', 'color-border', 'color-danger', 'color-on-primary', 'radius', 'font-family',
+    'color-background', 'color-foreground', 'color-card', 'color-card-foreground', 'color-popover', 'color-popover-foreground',
+    'color-primary-foreground', 'color-secondary', 'color-secondary-foreground', 'color-muted', 'color-muted-foreground',
+    'color-accent', 'color-accent-foreground', 'color-destructive', 'color-destructive-foreground', 'color-input', 'color-ring',
+  ]
+  const aliases: Array<[string, string]> = [
+    ['color-bg', 'color-background'],
+    ['color-text', 'color-foreground'],
+    ['color-danger', 'color-destructive'],
+    ['color-on-primary', 'color-primary-foreground'],
+  ]
+  it('DEFAULT_TOKENS has every shadcn key in both modes', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      for (const k of keys) expect(DEFAULT_TOKENS[mode][k], `${mode}.${k}`).toEqual(expect.any(String))
+      for (const [a, b] of aliases) expect(DEFAULT_TOKENS[mode][a], `${mode} ${a}=${b}`).toBe(DEFAULT_TOKENS[mode][b])
+    }
+  })
+})

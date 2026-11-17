@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, getCurrentInstance, inject, onBeforeUnmount, onErrorCaptured, ref, watch } from 'vue'
+import { computed, getCurrentInstance, inject, onBeforeUnmount, onErrorCaptured, provide, ref, watch } from 'vue'
 import { routeLocationKey } from 'vue-router'
+import { MF_PORTAL_KEY } from '../app/portal'
 
 const props = withDefaults(
   defineProps<{
     name: string
+    /** Value of the `data-mf-remote` scope attribute. Default: `name`. */
+    scope?: string
     timeout?: number
     error?: Error
     /** Frame title. Default: "Không tải được <name>" (load/timeout) or "<name> gặp lỗi" (runtime error). */
@@ -12,9 +15,12 @@ const props = withDefaults(
     /** Retry button label. Default "Thử lại". */
     retryLabel?: string
   }>(),
-  { timeout: 10000, title: undefined, retryLabel: 'Thử lại' },
+  { scope: undefined, timeout: 10000, title: undefined, retryLabel: 'Thử lại' },
 )
 const emit = defineEmits<{ retry: [] }>()
+
+const portalEl = ref<HTMLElement | null>(null)
+provide(MF_PORTAL_KEY, portalEl)
 
 const caught = ref<Error | null>(null)
 /** Whether `caught` is a load failure (timeout / async component loader) or a runtime error. */
@@ -105,25 +111,28 @@ onBeforeUnmount(clearTimer)
 </script>
 
 <template>
-  <div
-    v-if="shown"
-    class="mf-remote-error"
-    role="alert"
-    style="padding:16px;border:1px solid var(--mf-color-danger,#dc2626);border-radius:var(--mf-radius,6px);color:var(--mf-color-text,#1f2937);background:var(--mf-color-bg,#fff)"
-  >
-    <strong>{{ shownTitle }}</strong>
-    <p style="margin:8px 0;color:var(--mf-color-danger,#dc2626)">{{ shown.message }}</p>
-    <button
-      type="button"
-      data-test="mf-retry"
-      style="padding:6px 12px;border:0;border-radius:var(--mf-radius,6px);background:var(--mf-color-primary,#2563eb);color:var(--mf-color-on-primary,#fff);cursor:pointer"
-      @click="retry"
+  <div :data-mf-remote="scope ?? name" style="display:contents">
+    <div
+      v-if="shown"
+      class="mf-remote-error"
+      role="alert"
+      style="padding:16px;border:1px solid var(--mf-color-danger,#dc2626);border-radius:var(--mf-radius,6px);color:var(--mf-color-text,#1f2937);background:var(--mf-color-bg,#fff)"
     >
-      {{ retryLabel }}
-    </button>
+      <strong>{{ shownTitle }}</strong>
+      <p style="margin:8px 0;color:var(--mf-color-danger,#dc2626)">{{ shown.message }}</p>
+      <button
+        type="button"
+        data-test="mf-retry"
+        style="padding:6px 12px;border:0;border-radius:var(--mf-radius,6px);background:var(--mf-color-primary,#2563eb);color:var(--mf-color-on-primary,#fff);cursor:pointer"
+        @click="retry"
+      >
+        {{ retryLabel }}
+      </button>
+    </div>
+    <Suspense v-else :key="key" @pending="onPending" @resolve="clearTimer">
+      <slot />
+      <template #fallback><span class="mf-remote-loading" /></template>
+    </Suspense>
+    <div ref="portalEl" data-mf-portal></div>
   </div>
-  <Suspense v-else :key="key" @pending="onPending" @resolve="clearTimer">
-    <slot />
-    <template #fallback><span class="mf-remote-loading" /></template>
-  </Suspense>
 </template>

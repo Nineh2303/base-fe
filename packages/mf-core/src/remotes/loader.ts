@@ -110,7 +110,7 @@ function errorView(entry: RemoteEntry, error: Error): Component {
       return () =>
         entry.critical
           ? h(RemoteErrorPage, { name: label, error, onRetry: reload })
-          : h(RemoteBoundary, { name: label, error, onRetry: reload })
+          : h(RemoteBoundary, { name: label, scope: entry.name, error, onRetry: reload })
     },
   })
 }
@@ -277,7 +277,7 @@ export function defineRemoteComponent(id: string, opts: { runtime?: FederationRu
         return defineAsyncComponent(() => runtime.load<unknown>(id).then((m) => unwrap<Component>(m)))
       })
       return () =>
-        h(RemoteBoundary, { name: id, onRetry: () => attempt.value++ }, { default: () => h(inner.value, attrs, slots) })
+        h(RemoteBoundary, { name: id, scope: id.split('/')[0], onRetry: () => attempt.value++ }, { default: () => h(inner.value, attrs, slots) })
     },
   })
 }
