@@ -7,6 +7,7 @@ shadcn-vue style components (Reka UI + Tailwind v4) for nineh-fe-base apps. Comp
 - Host (once, e.g. in `bootstrap.ts`): `import '@nineh-fe-base/ui/styles/host.css'` (Tailwind with preflight, token mapping, `dark` variant).
 - Remote: `@import '@nineh-fe-base/ui/styles/remote.css';` in a `src/style.css` that the exposed `./routes` module imports (same as host.css but no preflight). A standalone remote also imports `host.css` in its bootstrap.
 - Both files declare `@layer theme, base, components, utilities;`. Your own unlayered CSS beats utilities; wrap it in `@layer components` if utilities should win.
+- A remote's CSS is scoped to its `[data-mf-remote="<name>"]` subtree: `@nineh-fe-base/mf-vite` wraps it in `@scope ([data-mf-remote="<name>"]) to ([data-mf-remote])` at build and dev time. Without this, a remote's `.hidden` (same layer and specificity, loaded later) would beat a host's `md:flex`. A remote therefore cannot style anything outside its area, by design. The `theme` layer, `@property`, `@keyframes`, `@font-face`, `@layer` statements, `@import` and rules that target the scope element itself (token overrides) stay global. Browser support for `@scope`: Chrome/Edge 118+, Safari 17.4+, Firefox 146+.
 
 ## Components
 

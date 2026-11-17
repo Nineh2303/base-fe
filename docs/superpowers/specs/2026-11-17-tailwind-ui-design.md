@@ -188,7 +188,8 @@ The package joins the Changesets `fixed` group with the other three.
 2. **Layer strategy.**
    - `host.css` and `remote.css` both declare the same order, `@layer theme, base, components, utilities;`, and all Tailwind output lives inside those layers.
    - Scoped token overrides are written **unlayered**. They are only variable declarations on `[data-mf-remote]`, so they never compete with utilities.
-   - Because the layer order is fixed up front, load order between stylesheets does not matter.
+   - Because the layer order is fixed up front, load order does not change which layer wins.
+   - Inside one layer, equal-specificity rules still follow load order, so `defineRemote` wraps the remote's CSS (except the `theme` layer, `@property`, `@keyframes`, `@font-face`, `@layer` statements, `@import` and rules targeting the scope element itself) in `@scope ([data-mf-remote="<name>"]) to ([data-mf-remote])`, and a remote cannot style outside its own area.
 3. **Scope element in `RemoteBoundary`.**
    - The `data-mf-remote` wrapper (`display: contents`) is the **outermost** element and wraps both the error frame and the Suspense content.
    - The portal container is a plain `<div data-mf-portal>` placed as the last child inside the wrapper.

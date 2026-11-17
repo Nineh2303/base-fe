@@ -25,6 +25,7 @@ export default defineRemote({
 ### Tailwind và ui
 
 - `defineHost`/`defineRemote` tự thêm plugin `@tailwindcss/vite` (Tailwind v4). Đặt `tailwind: false` để tắt.
+- `defineRemote` (khi bật Tailwind) thêm plugin `nineh-mf:scope-remote-css`: mọi CSS của remote (file `.css`, `<style>` của SFC; trừ `?raw`/`?url`/`?inline` và `host.css` của ui dùng cho standalone) được bọc trong `@scope ([data-mf-remote="<name>"]) to ([data-mf-remote])`, cả khi `vite build` lẫn `vite dev`. Nhờ vậy utility của remote (vd. `.hidden`) không đè utility của host (vd. `md:flex`) và remote không thể style ra ngoài vùng `[data-mf-remote]` của mình (thiết kế có chủ ý). Giữ toàn cục: layer `theme`, `@property`, `@keyframes`, `@font-face`, câu lệnh `@layer`, `@import`, và rule có subject là `[data-mf-remote…]` (override token). Plugin chạy ở pha normal, sau Tailwind (`enforce: 'pre'`) và `vite:css`, trước `vite:css-post`, nên thấy CSS đã biên dịch. Trình duyệt: Chrome/Edge 118+, Safari 17.4+, Firefox 146+.
 - Nếu `package.json` của project (root của Vite, mặc định cwd) có `@nineh-fe-base/ui` trong `dependencies`/`devDependencies`, `@nineh-fe-base/ui` và `reka-ui` tự được thêm vào shared singleton (`reka-ui` lấy `requiredVersion` từ `package.json` của ui). Project không dùng ui thì không đổi gì.
 
 Xem README gốc của repo để biết hợp đồng remote đầy đủ. Repo URL trong `package.json` (`nineh-fe-base/mf-framework`) là giá trị tạm, cần đổi theo repo thật.

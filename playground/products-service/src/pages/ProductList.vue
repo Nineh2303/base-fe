@@ -30,6 +30,10 @@ onMounted(() => store.fetch())
 <template>
   <section class="flex flex-col gap-4">
     <h1 class="products-title text-primary text-2xl font-semibold" data-test="products-title">Sản phẩm</h1>
+    <!-- remote-only responsive class (md:block is not in the shell's css) -->
+    <p class="text-muted-foreground hidden text-sm md:block" data-test="products-hint">
+      Bấm “Chi tiết” để xem sản phẩm.
+    </p>
     <p v-if="loading" data-test="products-loading">Đang tải…</p>
     <p v-else-if="error" class="text-destructive" role="alert" data-test="products-error">
       Không tải được danh sách: {{ error }}

@@ -124,7 +124,11 @@ Mọi app dùng Tailwind v4 (plugin `@tailwindcss/vite` do `defineHost`/`defineR
 @import '@nineh-fe-base/ui/styles/remote.css';
 ```
 
-Thứ tự layer cố định, cả hai file đều khai báo `@layer theme, base, components, utilities;` nên thứ tự nạp stylesheet không quan trọng. Dark mode: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`, khớp thuộc tính `data-theme` mà theme đã đặt.
+Thứ tự layer cố định: cả hai file đều khai báo `@layer theme, base, components, utilities;`, nên preflight luôn nằm dưới utility dù stylesheet nào nạp trước. Trong **cùng** một layer, hai rule cùng specificity vẫn phân thắng thua theo thứ tự nạp: stylesheet của remote nạp sau có `.hidden{display:none}` nhưng không có `md:flex` của host, nên sẽ làm ẩn phần tử `hidden md:flex` của host.
+
+Vì vậy `defineRemote` (khi bật Tailwind) bọc CSS của remote trong `@scope ([data-mf-remote="<tên>"]) to ([data-mf-remote])`. Rule của remote chỉ áp vào vùng của nó (không lan vào remote lồng bên trong), và trong vùng đó nó thắng rule cùng specificity của host. Remote **không thể** style ra ngoài vùng của mình; đó là thiết kế. Những phần vẫn toàn cục: layer `theme` (biến `:root`), `@property`, `@keyframes`, `@font-face`, câu lệnh `@layer`, `@import`, và rule nhắm chính scope element (`[data-mf-remote='x']`, `[data-theme='dark'] [data-mf-remote='x']`) để override token vẫn chạy. `host.css` mà `bootstrap.ts` standalone import thì không bị bọc. Trình duyệt hỗ trợ `@scope`: Chrome/Edge 118+, Safari 17.4+, Firefox 146+.
+
+Dark mode: `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`, khớp thuộc tính `data-theme` mà theme đã đặt.
 
 **Lưu ý**: CSS tự viết **không nằm trong layer** luôn thắng utility của Tailwind (vì layer luôn thua CSS không layer). Nếu muốn utility ghi đè được, bọc CSS của bạn trong `@layer components { ... }`.
 

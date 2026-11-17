@@ -109,3 +109,34 @@ test('dark theme persists across reload and remote follows', async ({ page }) =>
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   await expect.poll(() => bg(page.locator('[data-test=product-detail]').first())).toBe(PRODUCTS_PRIMARY_DARK)
 })
+
+const display = (loc: ReturnType<Page['locator']>) => loc.evaluate((el) => getComputedStyle(el).display)
+
+test("remote css cannot override host utilities: shell 'hidden md:flex' stays visible", async ({ page }) => {
+  await page.goto('/')
+  const tagline = page.locator('[data-test=shell-tagline]')
+  expect(await display(tagline)).toBe('flex')
+  await loginToProducts(page)
+  // the products stylesheet (with its own `.hidden{display:none}`) is loaded now
+  expect(await display(tagline)).toBe('flex')
+  await expect(tagline).toBeVisible()
+  // ...and it is @scope'd (cross-origin sheet: cssRules is not readable, so fetch its text)
+  const hrefs = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLLinkElement>('link[rel=stylesheet]')]
+      .map((l) => l.href)
+      .filter((h) => h.startsWith('http://localhost:5002/')),
+  )
+  expect(hrefs.length).toBeGreaterThan(0)
+  const texts = await Promise.all(hrefs.map(async (h) => (await page.request.get(h)).text()))
+  expect(texts.some((t) => t.includes('@scope([data-mf-remote=products]) to ([data-mf-remote])'))).toBe(true)
+  await page.setViewportSize({ width: 500, height: 800 })
+  await expect(tagline).toBeHidden()
+})
+
+test('remote-only responsive class works inside the host', async ({ page }) => {
+  await loginToProducts(page)
+  const hint = page.locator('[data-test=products-hint]')
+  expect(await display(hint)).toBe('block')
+  await page.setViewportSize({ width: 500, height: 800 })
+  await expect.poll(() => display(hint)).toBe('none')
+})

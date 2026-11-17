@@ -41,6 +41,8 @@ async function onLogout() {
       data-test="shell-header"
     >
       <RouterLink to="/" class="font-semibold no-underline">MF Playground</RouterLink>
+      <!-- desktop-only label: must stay visible after a remote's stylesheet loads (remote css is @scope'd) -->
+      <span class="text-muted-foreground hidden text-xs md:flex" data-test="shell-tagline">Module Federation</span>
       <nav class="flex flex-1 gap-4">
         <RouterLink
           v-for="r in menu"

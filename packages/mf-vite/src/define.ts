@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { federation } from '@module-federation/vite'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,6 +12,7 @@ import {
 } from './federation'
 import { CORE_PACKAGE, UI_PACKAGE } from './shared'
 import { writeMetaModule } from './meta'
+import { remoteCssScopePlugin } from './scope-css'
 
 function readJson(file: string): Record<string, any> {
   return JSON.parse(readFileSync(file, 'utf8'))
@@ -22,17 +23,35 @@ function readVersions(pkg: Record<string, any>): Record<string, string> {
   return { ...pkg.peerDependencies, ...pkg.devDependencies, ...pkg.dependencies }
 }
 
-/** Read an installed package's package.json, walking up from the project root (npm workspaces hoist). */
-function readInstalledPackage(root: string, name: string): Record<string, any> {
+/** Directory of an installed package, walking up from the project root (npm workspaces hoist). */
+function findInstalledPackage(root: string, name: string): string | undefined {
   let dir = resolve(root)
   for (;;) {
-    const file = join(dir, 'node_modules', ...name.split('/'), 'package.json')
-    if (existsSync(file)) return readJson(file)
+    const pkgDir = join(dir, 'node_modules', ...name.split('/'))
+    if (existsSync(join(pkgDir, 'package.json'))) return pkgDir
     const parent = dirname(dir)
-    if (parent === dir) break
+    if (parent === dir) return undefined
     dir = parent
   }
-  throw new Error(`Cannot find ${name} in node_modules (searched upward from ${root})`)
+}
+
+/** Read an installed package's package.json (see findInstalledPackage). */
+function readInstalledPackage(root: string, name: string): Record<string, any> {
+  const dir = findInstalledPackage(root, name)
+  if (!dir) throw new Error(`Cannot find ${name} in node_modules (searched upward from ${root})`)
+  return readJson(join(dir, 'package.json'))
+}
+
+/**
+ * ui's host.css (global preflight + utilities), imported by a remote's standalone entry, is never
+ * scoped. Both the node_modules path and its real path are listed: Vite ids use the real path
+ * (workspace symlinks are resolved).
+ */
+function uiHostCssPaths(root: string): string[] {
+  const dir = findInstalledPackage(root, UI_PACKAGE)
+  if (!dir) return []
+  const file = join(dir, 'styles', 'host.css')
+  return existsSync(file) ? [file, realpathSync(file)] : [file]
 }
 
 function readCoreVersion(root: string): string {
@@ -63,6 +82,10 @@ function baseConfig(
     plugins: [
       vue(),
       ...(opts.tailwind === false ? [] : [tailwindcss()]),
+      // a remote's CSS is scoped to its [data-mf-remote] subtree so it cannot override host styles
+      ...(kind === 'remote' && opts.tailwind !== false
+        ? [remoteCssScopePlugin(opts.name, { exclude: uiHostCssPaths(ctx.root) })]
+        : []),
       federation(buildFederationOptions(kind, opts, ctx)),
     ],
     build: { target: 'esnext' },
