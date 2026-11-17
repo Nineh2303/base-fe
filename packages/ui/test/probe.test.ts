@@ -53,7 +53,7 @@ describe('component probes', () => {
   it('Textarea v-model', async () => {
     const v = ref('a')
     const Host = defineComponent({
-      setup: () => () => h(Textarea, { modelValue: v.value, 'onUpdate:modelValue': (x: string | number) => (v.value = String(x)) }),
+      setup: () => () => h(Textarea, { modelValue: v.value, 'onUpdate:modelValue': (x: string | number | undefined) => (v.value = String(x ?? '')) }),
     })
     const w = mount(Host)
     expect(w.find('textarea').element.value).toBe('a')

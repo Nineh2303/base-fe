@@ -26,7 +26,7 @@ describe('components', () => {
   it('Input v-model round-trips', async () => {
     const value = ref('a')
     const Host = defineComponent({
-      setup: () => () => h(Input, { modelValue: value.value, 'onUpdate:modelValue': (v: string | number) => (value.value = String(v)) }),
+      setup: () => () => h(Input, { modelValue: value.value, 'onUpdate:modelValue': (v: string | number | undefined) => (value.value = String(v ?? '')) }),
     })
     const w = mount(Host)
     const input = w.find('input')
