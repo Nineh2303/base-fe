@@ -213,9 +213,8 @@ describe('adversarial: exports', () => {
   it('src/index exports every name', () => {
     for (const n of names) expect((ui as Record<string, unknown>)[n], n).toBeDefined()
   })
-  it('dist exports every name (when built)', async () => {
-    const f = resolve(__dirname, '../dist/index.js')
-    if (!existsSync(f)) return
+  const f = resolve(__dirname, '../dist/index.js')
+  it.skipIf(!existsSync(f))('dist exports every name (when built)', async () => {
     const mod = (await import(/* @vite-ignore */ pathToFileURL(f).href)) as Record<string, unknown>
     for (const n of names) expect(mod[n], n).toBeDefined()
   })

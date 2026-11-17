@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { createApp, defineComponent, h, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
@@ -167,13 +170,11 @@ describe('tokens', () => {
   })
 })
 
+const distEntry = resolve(__dirname, '../dist/index.js')
+
 describe('built dist exports', () => {
-  it('exports MF_PORTAL_KEY and useMfPortalTarget (skipped without dist)', async () => {
-    const { existsSync } = await import('node:fs')
-    const { resolve } = await import('node:path')
-    const { pathToFileURL } = await import('node:url')
-    const url = pathToFileURL(resolve(__dirname, '../dist/index.js'))
-    if (!existsSync(url)) return
+  it.skipIf(!existsSync(distEntry))('exports MF_PORTAL_KEY and useMfPortalTarget (skipped without dist)', async () => {
+    const url = pathToFileURL(distEntry)
     const dist = await import(/* @vite-ignore */ url.href)
     expect(dist.MF_PORTAL_KEY).toBe(Symbol.for('nineh-fe-base/ui-portal'))
     expect(typeof dist.useMfPortalTarget).toBe('function')
