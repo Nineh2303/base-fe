@@ -4,6 +4,8 @@ export type SharedConfig = Record<
 >
 
 export const CORE_PACKAGE = '@nineh-fe-base/mf-core'
+export const UI_PACKAGE = '@nineh-fe-base/ui'
+export const REKA_PACKAGE = 'reka-ui'
 
 export const DEFAULT_SHARED_NAMES = [
   'vue',
@@ -32,6 +34,8 @@ export function buildShared(
   versions: Record<string, string>,
   extra: SharedConfig = {},
   coreVersion?: string,
+  uiReka?: string,
+  uiVersion?: string,
 ): SharedConfig {
   const shared: SharedConfig = {}
   for (const name of DEFAULT_SHARED_NAMES) {
@@ -45,10 +49,20 @@ export function buildShared(
     }
     shared[name] = requiredVersion ? { singleton: true, requiredVersion } : { singleton: true }
   }
+  const forced: string[] = [...DEFAULT_SHARED_NAMES]
+  const uiSpec = versions[UI_PACKAGE]
+  if (uiSpec) {
+    const requiredVersion = isLocalSpec(uiSpec) && uiVersion ? `^${uiVersion}` : uiSpec
+    shared[UI_PACKAGE] = { singleton: true, requiredVersion }
+    shared[REKA_PACKAGE] = uiReka
+      ? { singleton: true, requiredVersion: uiReka }
+      : { singleton: true }
+    forced.push(UI_PACKAGE, REKA_PACKAGE)
+  }
   for (const [name, cfg] of Object.entries(extra)) {
     shared[name] = { ...shared[name], ...cfg }
   }
-  for (const name of DEFAULT_SHARED_NAMES) {
+  for (const name of forced) {
     shared[name] = { ...shared[name], singleton: true }
   }
   return shared

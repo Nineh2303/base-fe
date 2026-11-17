@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { federation } from '@module-federation/vite'
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { mergeConfig, type UserConfig, type UserConfigFnPromise } from 'vite'
 import {
@@ -9,7 +10,7 @@ import {
   type HostOptions,
   type RemoteOptions,
 } from './federation'
-import { CORE_PACKAGE } from './shared'
+import { CORE_PACKAGE, UI_PACKAGE } from './shared'
 import { writeMetaModule } from './meta'
 
 function readJson(file: string): Record<string, any> {
@@ -22,21 +23,36 @@ function readVersions(root: string): Record<string, string> {
   return { ...pkg.peerDependencies, ...pkg.devDependencies, ...pkg.dependencies }
 }
 
-/** Resolve mf-core's version from node_modules, walking up from the project root (npm workspaces hoist). */
-function readCoreVersion(root: string): string {
+/** Read an installed package's package.json, walking up from the project root (npm workspaces hoist). */
+function readInstalledPackage(root: string, name: string): Record<string, any> {
   let dir = resolve(root)
   for (;;) {
-    const file = join(dir, 'node_modules', ...CORE_PACKAGE.split('/'), 'package.json')
-    if (existsSync(file)) return readJson(file).version
+    const file = join(dir, 'node_modules', ...name.split('/'), 'package.json')
+    if (existsSync(file)) return readJson(file)
     const parent = dirname(dir)
     if (parent === dir) break
     dir = parent
   }
-  throw new Error(`Cannot find ${CORE_PACKAGE} in node_modules (searched upward from ${root})`)
+  throw new Error(`Cannot find ${name} in node_modules (searched upward from ${root})`)
+}
+
+function readCoreVersion(root: string): string {
+  return readInstalledPackage(root, CORE_PACKAGE).version
 }
 
 function createContext(root: string): FederationContext {
-  return { root, versions: readVersions(root), coreVersion: readCoreVersion(root) }
+  const pkg = readJson(join(root, 'package.json'))
+  const versions = readVersions(root)
+  const ctx: FederationContext = { root, versions, coreVersion: readCoreVersion(root) }
+  // ui is shared only when listed in dependencies/devDependencies (a peer listing does not count)
+  const usesUi = Boolean(pkg.dependencies?.[UI_PACKAGE] ?? pkg.devDependencies?.[UI_PACKAGE])
+  if (usesUi) {
+    const ui = readInstalledPackage(root, UI_PACKAGE)
+    ctx.ui = { version: ui.version, rekaRange: ui.dependencies?.['reka-ui'] }
+  } else {
+    delete versions[UI_PACKAGE]
+  }
+  return ctx
 }
 
 function baseConfig(
@@ -46,7 +62,11 @@ function baseConfig(
 ): UserConfig {
   const port = opts.port
   const config: UserConfig = {
-    plugins: [vue(), federation(buildFederationOptions(kind, opts, ctx))],
+    plugins: [
+      vue(),
+      ...(opts.tailwind === false ? [] : [tailwindcss()]),
+      federation(buildFederationOptions(kind, opts, ctx)),
+    ],
     build: { target: 'esnext' },
   }
   if (port !== undefined) {

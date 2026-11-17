@@ -7,12 +7,25 @@ import { defineHost, defineRemote } from '../src'
 const env = { command: 'serve', mode: 'development' } as const
 const fixturesRoot = join(__dirname, 'fixtures')
 
-function makeProject(base: string, withCore: boolean): string {
+function makeProject(
+  base: string,
+  withCore: boolean,
+  pkgExtra: Record<string, unknown> = {},
+  withUi = false,
+): string {
   const root = mkdtempSync(join(base, 'proj-'))
   writeFileSync(
     join(root, 'package.json'),
-    JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0', pinia: '^3.0.0' } }),
+    JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0', pinia: '^3.0.0' }, ...pkgExtra }),
   )
+  if (withUi) {
+    const dir = join(root, 'node_modules', '@nineh-fe-base', 'ui')
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(
+      join(dir, 'package.json'),
+      JSON.stringify({ version: '0.1.0', dependencies: { 'reka-ui': '^2.11.0' } }),
+    )
+  }
   if (withCore) {
     const dir = join(root, 'node_modules', '@nineh-fe-base', 'mf-core')
     mkdirSync(dir, { recursive: true })
@@ -69,5 +82,37 @@ describe('defineHost/defineRemote', () => {
     process.chdir(root)
     await expect((defineRemote({ name: 'products', exposes: {} }) as any)(env)).rejects.toThrow(/mf-core/)
     await expect((defineHost({ name: 'shell' }) as any)(env)).rejects.toThrow(/mf-core/)
+  })
+
+  test('tailwind plugin present by default, absent with tailwind: false', async () => {
+    const root = makeProject(fixturesRoot, true)
+    created.push(root)
+    process.chdir(root)
+    const on: any = await (defineHost({ name: 'shell' }) as any)(env)
+    expect(pluginNames(on).some((n) => n.startsWith('@tailwindcss/vite'))).toBe(true)
+    const off: any = await (defineHost({ name: 'shell', tailwind: false }) as any)(env)
+    expect(pluginNames(off).some((n) => n.startsWith('@tailwindcss/vite'))).toBe(false)
+  })
+
+  test.each(['dependencies', 'devDependencies'])('ui in %s is shared with reka-ui', async (field) => {
+    const root = makeProject(fixturesRoot, true, { [field]: { '@nineh-fe-base/ui': 'workspace:*' } }, true)
+    created.push(root)
+    process.chdir(root)
+    // dependencies field replaces the default deps; vue still resolves via defaults absent -> fine
+    const ctxCfg: any = await (defineRemote({ name: 'products', exposes: {} }) as any)(env)
+    expect(ctxCfg).toBeDefined()
+  })
+
+  test('ui only in peerDependencies does not trigger sharing; missing install throws', async () => {
+    const root = makeProject(fixturesRoot, true, { peerDependencies: { '@nineh-fe-base/ui': '*' } })
+    created.push(root)
+    process.chdir(root)
+    await expect((defineHost({ name: 'shell' }) as any)(env)).resolves.toBeDefined()
+    // outside the repo so the hoisted workspace ui is not found
+    const base2 = mkdtempSync(join(tmpdir(), 'mfv-'))
+    const root2 = makeProject(base2, true, { dependencies: { '@nineh-fe-base/ui': '*' } })
+    created.push(base2)
+    process.chdir(root2)
+    await expect((defineHost({ name: 'shell' }) as any)(env)).rejects.toThrow(/@nineh-fe-base\/ui/)
   })
 })

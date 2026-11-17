@@ -7,6 +7,8 @@ export interface HostOptions {
   name: string
   port?: number
   shared?: SharedConfig
+  /** Add the Tailwind v4 Vite plugin (default true). */
+  tailwind?: boolean
   vite?: UserConfig
 }
 
@@ -15,6 +17,8 @@ export interface RemoteOptions {
   port?: number
   exposes: Record<string, string>
   shared?: SharedConfig
+  /** Add the Tailwind v4 Vite plugin (default true). */
+  tailwind?: boolean
   vite?: UserConfig
 }
 
@@ -22,6 +26,8 @@ export interface FederationContext {
   root: string
   versions: Record<string, string>
   coreVersion: string
+  /** Present when @nineh-fe-base/ui is a dependency/devDependency and installed. */
+  ui?: { version: string; rekaRange: string }
 }
 
 export type FederationOptions = ModuleFederationOptions & {
@@ -42,7 +48,7 @@ export function buildFederationOptions(
       `Invalid federation name "${opts.name}": name must be a valid JS identifier (JS identifier rules)`,
     )
   }
-  const shared = buildShared(ctx.versions, opts.shared, ctx.coreVersion)
+  const shared = buildShared(ctx.versions, opts.shared, ctx.coreVersion, ctx.ui?.rekaRange, ctx.ui?.version)
   // dts: remotes are loaded at runtime from remotes.json (no static `import 'remote/x'`), so
   // federated type generation has nothing to do; it also crashes dev without a tsconfig.json.
   const base = { name: opts.name, shared, manifest: true, dts: false }
